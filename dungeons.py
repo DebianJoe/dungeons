@@ -570,7 +570,7 @@ def place_objects(room):
             
             elif choice == 'rat':
             	#create a rat
-            	fighter_component = Fighter(hp=15, defense=2, power=6, xp=50, death_function=monster_death)
+            	fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
             	ai_component = BasicMonster()
             	
             	monster = Object(x, y, 'r', 'rat', libtcod.white,

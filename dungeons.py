@@ -27,6 +27,7 @@
 
 # The Crunchbang (#!) Python Group consists of
 # DebianJoe
+# kbmonkey (wesley)
  
 import libtcodpy as libtcod
 import math

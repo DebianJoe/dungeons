@@ -541,6 +541,7 @@ def place_objects(room):
     item_chances['confuse'] =   from_dungeon_level([[10, 2]])
     item_chances['sword'] =     from_dungeon_level([[5, 4]])
     item_chances['shield'] =    from_dungeon_level([[15, 8]])
+    item_chances['cloak'] = 	from_dungeon_level([[5, 2]])
  
  
     #choose random number of monsters
@@ -619,8 +620,13 @@ def place_objects(room):
             elif choice == 'shield':
                 #create a shield
                 equipment_component = Equipment(slot='left hand', defense_bonus=1)
-                item = Object(x, y, '[', 'shield', libtcod.darker_orange, equipment=equipment_component)
- 
+                item = Object(x, y, '[', 'shield', libtcod.darker_orange, equipment=equipment)
+            
+            elif choice == 'cloak':
+ 				#create a cloak
+ 				equipment_component = Equipment(slot='back', max_hp_bonus=10)
+ 				item = Object(x, y, ')', 'cloak', libtcod.darker_green, equipment=equipment_component)
+ 			
             objects.append(item)
             item.send_to_back()  #items appear below other objects
             item.always_visible = True  #items are visible even out-of-FOV, if in an explored area

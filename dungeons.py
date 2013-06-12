@@ -289,34 +289,66 @@ class ConfusedMonster:
  
 class Item:
     #an item that can be picked up and used.
-    def __init__(self, use_function=None):
+    def __init__(self, use_function=None, stackable=False):
         self.use_function = use_function
+        self.stackable = stackable
+        self.stack = [self]
+        
+    def stacksize(self):
+		return len(self.stack)
  
     def pick_up(self):
-        #add to the player's inventory and remove from the map
-        if len(inventory) >= 26:
-            message('Your inventory is full, cannot pick up ' + self.owner.name + '.', libtcod.red)
+        #add to the player's inventory and remove from the map        
+        if self.stackable:
+            #check for existing stack
+            existingindex = inventory_find(self.owner.name)
+            if existingindex == -1:
+                #No stack found, check if there is room in inventory to begin a new stack  
+                if len(inventory) >= 26:
+                    message('Your inventory is full, cannot pick up ' + self.owner.name + '.', libtcod.red)
+                else:
+                    #create a new stack
+                    inventory.append(self.owner)
+                    objects.remove(self.owner)
+                    message('You picked up a ' + self.owner.name + '!', libtcod.green)
+            else:
+                #add to existing stack
+                existing_stack = inventory[existingindex]
+                existing_stack.item.stack.append(self.owner)
+                objects.remove(self.owner)
+                message('You now have ' + str(existing_stack.item.stacksize()) + ' ' + self.owner.name + 's!', libtcod.green)
         else:
-            inventory.append(self.owner)
-            objects.remove(self.owner)
-            message('You picked up a ' + self.owner.name + '!', libtcod.green)
+            if len(inventory) >= 26:
+                message('Your inventory is full, cannot pick up ' + self.owner.name + '.', libtcod.red)
+            else:
+                inventory.append(self.owner)
+                objects.remove(self.owner)
+                message('You picked up a ' + self.owner.name + '!', libtcod.green)
  
-            #special case: automatically equip, if the corresponding equipment slot is unused
-            equipment = self.owner.equipment
-            if equipment and get_equipped_in_slot(equipment.slot) is None:
-                equipment.equip()
- 
+                #special case: automatically equip, if the corresponding equipment slot is unused
+                equipment = self.owner.equipment
+                if equipment and get_equipped_in_slot(equipment.slot) is None:
+                    equipment.equip()
+
     def drop(self):
         #special case: if the object has the Equipment component, dequip it before dropping
         if self.owner.equipment:
             self.owner.equipment.dequip()
  
-        #add to the map and remove from the player's inventory. also, place it at the player's coordinates
-        objects.append(self.owner)
-        inventory.remove(self.owner)
-        self.owner.x = player.x
-        self.owner.y = player.y
-        message('You dropped a ' + self.owner.name + '.', libtcod.yellow)
+        if self.stackable and self.stacksize() > 1:
+			#Drop 1 item of the stack
+			dropobject = self.stack.pop()
+			dropobject.x = player.x
+			dropobject.y = player.y
+			objects.append(dropobject)
+			message('You dropped a ' + dropobject.name + '. (' + str(self.stacksize()) + ' remaining)', libtcod.yellow)
+        else:
+	        #add to the map and remove from the player's inventory. also, place it at the player's coordinates
+	        objects.append(self.owner)
+	        inventory.remove(self.owner)
+	        self.owner.x = player.x
+	        self.owner.y = player.y
+	        message('You dropped a ' + self.owner.name + '.', libtcod.yellow)
  
     def use(self):
         #special case: if the object has the Equipment component, the "use" action is to equip/dequip
@@ -329,7 +361,11 @@ class Item:
             message('The ' + self.owner.name + ' cannot be used.')
         else:
             if self.use_function() != 'cancelled':
-                inventory.remove(self.owner)  #destroy after use, unless it was cancelled for some reason
+				if self.stackable and self.stacksize() > 1:
+					self.stack.pop()
+					message('You used a ' + self.owner.name + '. (' + str(self.stacksize()) + ' remaining)', libtcod.yellow)
+				else:
+					inventory.remove(self.owner)  #destroy after use, unless it was cancelled for some reason
  
 class Equipment:
     #an object that can be equipped, yielding bonuses. automatically adds the Item component.
@@ -571,12 +607,12 @@ def place_objects(room):
                                  blocks=True, fighter=fighter_component, ai=ai_component)
             
             elif choice == 'rat':
-            	#create a rat
-            	fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
-            	ai_component = BasicMonster()
-            	
-            	monster = Object(x, y, 'r', 'rat', libtcod.white,
-            					blocks=True, fighter=fighter_component, ai=ai_component)
+                #create a rat
+                fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
+                ai_component = BasicMonster()
+                
+                monster = Object(x, y, 'r', 'rat', libtcod.white,
+                                blocks=True, fighter=fighter_component, ai=ai_component)
  
             objects.append(monster)
  
@@ -593,7 +629,7 @@ def place_objects(room):
             choice = random_choice(item_chances)
             if choice == 'heal':
                 #create a healing potion
-                item_component = Item(use_function=cast_heal)
+                item_component = Item(use_function=cast_heal,stackable=True)
                 item = Object(x, y, '!', 'healing potion', libtcod.violet, item=item_component)
  
             elif choice == 'lightning':
@@ -815,11 +851,14 @@ def inventory_menu(header):
         options = ['Inventory is empty.']
     else:
         options = []
-        for item in inventory:
-            text = item.name
+        for itemobject in inventory:
+            text = itemobject.name
+            #show additional information, in case of a stack of items
+            if itemobject.item and itemobject.item.stackable and itemobject.item.stacksize() > 1:
+				text = str(itemobject.item.stacksize()) + ' ' + text + 's'
             #show additional information, in case it's equipped
-            if item.equipment and item.equipment.is_equipped:
-                text = text + ' (on ' + item.equipment.slot + ')'
+            if itemobject.equipment and itemobject.equipment.is_equipped:
+                text = text + ' (on ' + itemobject.equipment.slot + ')'
             options.append(text)
  
     index = menu(header, options, INVENTORY_WIDTH)
@@ -827,7 +866,15 @@ def inventory_menu(header):
     #if an item was chosen, return it
     if index is None or len(inventory) == 0: return None
     return inventory[index].item
- 
+
+def inventory_find(itemname):
+    #returns first index of item or -1 if the item is not found
+    itemindex = -1
+    for item in inventory:
+        if item.name == itemname:
+            itemindex = inventory.index(item)
+    return itemindex
+     
 def msgbox(text, width=50):
     menu(text, [], width)  #use menu() as a sort of "message box"
  

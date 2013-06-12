@@ -620,7 +620,7 @@ def place_objects(room):
             elif choice == 'shield':
                 #create a shield
                 equipment_component = Equipment(slot='left hand', defense_bonus=1)
-                item = Object(x, y, '[', 'shield', libtcod.darker_orange, equipment=equipment-component)
+                item = Object(x, y, '[', 'shield', libtcod.darker_orange, equipment=equipment_component)
             
             elif choice == 'cloak':
  				#create a cloak

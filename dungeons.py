@@ -80,12 +80,12 @@ TORCH_RADIUS = 10
 LIMIT_FPS = 20  #20 frames-per-second maximum
  
  
-color_dark_wall = libtcod.Color(0, 0, 100)
+color_dark_wall = libtcod.Color(130, 110, 50) * libtcod.dark_grey * 0.4
 color_dark_wall2 = libtcod.light_orange * libtcod.dark_grey * 0.2
 color_light_wall = libtcod.Color(130, 110, 50)
 color_light_wall2 = libtcod.light_orange * 0.3
 
-color_dark_ground = libtcod.Color(50, 50, 150)
+color_dark_ground = libtcod.Color(200, 180, 50) * libtcod.dark_grey * 0.5
 color_dark_ground2 = libtcod.orange * 0.4
 color_light_ground = libtcod.Color(200, 180, 50)
 color_light_ground2 = libtcod.orange * 0.9

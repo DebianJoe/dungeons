@@ -27,6 +27,7 @@
 
 # The Crunchbang (#!) Python Group consists of
 # DebianJoe
+# kbmonkey (wesley)
  
 import libtcodpy as libtcod
 import math
@@ -885,9 +886,12 @@ def handle_keys():
             if key_char == 'c':
                 #show character information
                 level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
+                equipped_list = ', '.join(item.owner.name for item in get_all_equipped(player))
+                equipped_list = 'Equipped: ' + str(equipped_list and equipped_list or 'bare handed')
                 msgbox('Character Information\n\nLevel: ' + str(player.level) + '\nExperience: ' + str(player.fighter.xp) +
                        '\nExperience to level up: ' + str(level_up_xp) + '\n\nMaximum HP: ' + str(player.fighter.max_hp) +
-                       '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(player.fighter.defense), CHARACTER_SCREEN_WIDTH)
+                       '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(player.fighter.defense) +
+                       '\n\n' + str(equipped_list), CHARACTER_SCREEN_WIDTH)
 
             if key_char == 'h':
                 msgbox('The ARROW keys move you around\n' +

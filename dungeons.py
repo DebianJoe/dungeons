@@ -573,7 +573,7 @@ def place_objects(room):
     item_chances = {}
     item_chances['heal'] = 35  #healing potion always shows up, even if all other items have 0 chance
     item_chances['lightning'] = from_dungeon_level([[25, 4]])
-    item_chances['fireball'] = 100 # from_dungeon_level([[25, 6]])
+    item_chances['fireball'] =  from_dungeon_level([[25, 6]])
     item_chances['confuse'] =   from_dungeon_level([[10, 2]])
     item_chances['sword'] =     from_dungeon_level([[5, 4]])
     item_chances['shield'] =    from_dungeon_level([[15, 8]])

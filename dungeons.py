@@ -28,6 +28,7 @@
 # The Crunchbang (#!) Python Group consists of
 # DebianJoe
 # kbmonkey (wesley)
+# FrostLock
  
 import libtcodpy as libtcod
 import math

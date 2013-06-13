@@ -562,7 +562,7 @@ def place_objects(room):
     monster_chances['troll'] = from_dungeon_level([[15, 3], [30, 5], [60, 7]])
     monster_chances['killerrabbit'] = from_dungeon_level([[100, 5], [50, 3]])
     #Uncomment this line to meet the Killerrabbit in level 1, hopefully he won't spawn at the entrance!
-    #monster_chances['killerrabbit'] = from_dungeon_level([[100, 5], [50, 3], [100, 0]]) 
+    monster_chances['killerrabbit'] = from_dungeon_level([[100, 5], [50, 3], [100, 0]]) 
     global killerrabbit_created #this variable is used to make sure we only have one killerrabbit
     
     #maximum number of items per room
@@ -1202,7 +1202,7 @@ def new_game():
     equipment_component.equip()
     obj.always_visible = True
     
-    img = libtcod.image_load('menu_background.png')
+    img = libtcod.image_load('./media/menu_background.png')
     libtcod.image_blit_2x(img, 0, 0, 0)
     msgbox("What is your decendancy young adventurer?\n" +
                "Press ENTER to Continue")
@@ -1309,7 +1309,7 @@ def main_menu():
             break
  
 
-libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
+libtcod.console_set_custom_font('./media/arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Crunchbang Project', False)
 libtcod.sys_set_fps(LIMIT_FPS)
 con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)

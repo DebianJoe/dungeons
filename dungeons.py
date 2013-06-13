@@ -571,11 +571,11 @@ def place_objects(room):
     #chance of each item (by default they have a chance of 0 at level 1, which then goes up)
     item_chances = {}
     item_chances['heal'] = 35  #healing potion always shows up, even if all other items have 0 chance
-    item_chances['lightning'] = from_dungeon_level([[25, 4],[100, 0]])
-    item_chances['fireball'] =  from_dungeon_level([[25, 6],[100, 0]])
-    item_chances['confuse'] =   from_dungeon_level([[10, 2],[100, 0]])
-    item_chances['sword'] =     from_dungeon_level([[5, 4],[100, 0]])
-    item_chances['shield'] =    from_dungeon_level([[15, 8],[100, 0]])
+    item_chances['lightning'] = from_dungeon_level([[25, 4]])
+    item_chances['fireball'] =  from_dungeon_level([[25, 6]])
+    item_chances['confuse'] =   from_dungeon_level([[10, 2]])
+    item_chances['sword'] =     from_dungeon_level([[5, 4]])
+    item_chances['shield'] =    from_dungeon_level([[15, 8]])
  
  
     #choose random number of monsters
@@ -615,7 +615,7 @@ def place_objects(room):
                 else:
 					#create a killerrabbit
 					killerrabbit_created=True
-					fighter_component = Fighter(hp=100, defense=0, power=1000, xp=5000, death_function=monster_death)
+					fighter_component = Fighter(hp=20, defense=0, power=200, xp=1000, death_function=monster_death)
 					ai_component = BasicMonster()
 					monster = Object(x, y, 'R', 'killerrabbit', libtcod.red,
                                     blocks=True, fighter=fighter_component, ai=ai_component)

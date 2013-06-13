@@ -37,7 +37,7 @@ import shelve
  
  
 #actual size of the window
-SCREEN_WIDTH = 85
+SCREEN_WIDTH = 85 
 SCREEN_HEIGHT = 50
  
 #size of the map
@@ -90,7 +90,6 @@ color_dark_ground = libtcod.Color(200, 180, 50) * libtcod.dark_grey * 0.5
 color_dark_ground2 = libtcod.orange * 0.4
 color_light_ground = libtcod.Color(200, 180, 50)
 color_light_ground2 = libtcod.orange * 0.9
- 
  
 class Tile:
     #a tile of the map and its properties
@@ -199,7 +198,6 @@ class Object:
         #erase the character that represents this object
         libtcod.console_put_char(con, self.x, self.y, ' ', libtcod.BKGND_NONE)
  
- 
 class Fighter:
     #combat-related properties and methods (monster, player, NPC).
     def __init__(self, hp, defense, power, xp, death_function=None):
@@ -232,11 +230,12 @@ class Fighter:
         if damage > 0:
             #make the target take some damage
             message(self.owner.name.capitalize() + ' attacks ' + target.name + ' for ' + str(damage) + ' hit points.')
-            target.fighter.take_damage(damage)
+            target.fighter.take_damage(damage,self)
         else:
             message(self.owner.name.capitalize() + ' attacks ' + target.name + ' but it has no effect!')
  
-    def take_damage(self, damage):
+    def take_damage(self, damage, attacker):
+        global killerrabbit_death
         #apply damage if possible
         if damage > 0:
             self.hp -= damage
@@ -245,10 +244,7 @@ class Fighter:
             if self.hp <= 0:
                 function = self.death_function
                 if function is not None:
-                    function(self.owner)
- 
-                if self.owner != player:  #yield experience to the player
-                    player.fighter.xp += self.xp
+                    function(self.owner,attacker)
  
     def heal(self, amount):
         #heal by the given amount, without going over the maximum
@@ -416,7 +412,6 @@ def get_all_equipped(obj):  #returns a list of equipped items
     else:
         return []  #other objects have no equipment
  
- 
 def is_blocked(x, y):
     #first test the map tile
     if map[x][y].blocked:
@@ -565,7 +560,11 @@ def place_objects(room):
     monster_chances['zombie'] = 80  #zombie always shows up, even if all other monsters have 0 chance
     monster_chances['rat'] = from_dungeon_level([[90, 1], [30, 2], [10, 0]])
     monster_chances['troll'] = from_dungeon_level([[15, 3], [30, 5], [60, 7]])
- 
+    monster_chances['killerrabbit'] = from_dungeon_level([[100, 5], [50, 3]])
+    #Uncomment this line to meet the Killerrabbit in level 1, hopefully he won't spawn at the entrance!
+    #monster_chances['killerrabbit'] = from_dungeon_level([[100, 5], [50, 3], [100, 0]]) 
+    global killerrabbit_created #this variable is used to make sure we only have one killerrabbit
+    
     #maximum number of items per room
     max_items = from_dungeon_level([[1, 1], [2, 4]])
  
@@ -607,6 +606,21 @@ def place_objects(room):
                 monster = Object(x, y, 'T', 'troll', libtcod.darker_green,
                                  blocks=True, fighter=fighter_component, ai=ai_component)
             
+            elif choice == 'killerrabbit':
+                if killerrabbit_created:
+					#create a rat instead
+					fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
+					ai_component = BasicMonster()
+					monster = Object(x, y, 'r', 'rat', libtcod.white,
+                                blocks=True, fighter=fighter_component, ai=ai_component)
+                else:
+					#create a killerrabbit
+					killerrabbit_created=True
+					fighter_component = Fighter(hp=20, defense=0, power=200, xp=1000, death_function=monster_death)
+					ai_component = BasicMonster()
+					monster = Object(x, y, 'R', 'killerrabbit', libtcod.red,
+                                    blocks=True, fighter=fighter_component, ai=ai_component)
+            
             elif choice == 'rat':
                 #create a rat
                 fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
@@ -614,7 +628,7 @@ def place_objects(room):
                 
                 monster = Object(x, y, 'r', 'rat', libtcod.white,
                                 blocks=True, fighter=fighter_component, ai=ai_component)
- 
+             
             objects.append(monster)
  
     #choose random number of items
@@ -667,7 +681,6 @@ def place_objects(room):
             item.send_to_back()  #items appear below other objects
             item.always_visible = True  #items are visible even out-of-FOV, if in an explored area
  
- 
 def render_bar(x, y, total_width, name, value, maximum, bar_color, back_color):
     #render a bar (HP, experience, etc). first calculate the width of the bar
     bar_width = int(float(value) / maximum * total_width)
@@ -704,6 +717,7 @@ def render_all():
     global color_dark_ground, color_light_ground, color_light_wall2, color_dark_ground2
     global color_light_ground2
     global fov_recompute, dungeon_level
+    global killerrabbit_death
  
     if fov_recompute:
         #recompute FOV if needed (the player moved or something)
@@ -749,7 +763,12 @@ def render_all():
     #blit the contents of "con" to the root console
     libtcod.console_blit(con, 0, 0, MAP_WIDTH, MAP_HEIGHT, 0, 0, 0)
  
- 
+    #if killed by killerrabbit show special death screen
+    if killerrabbit_death and game_state == 'dead':
+		blood = libtcod.image_load('./media/killerrabbit.png')
+		libtcod.image_set_key_color(blood, libtcod.black)
+		libtcod.image_blit_2x(blood, con, 0, 0)
+  
     #prepare to render the GUI panel
     libtcod.console_set_default_background(panel, libtcod.black)
     libtcod.console_clear(panel)
@@ -773,7 +792,6 @@ def render_all():
     #blit the contents of "panel" to the root console
     libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
  
- 
 def message(new_msg, color = libtcod.white):
     #split the message if necessary, among multiple lines
     new_msg_lines = textwrap.wrap(new_msg, MSG_WIDTH)
@@ -785,7 +803,6 @@ def message(new_msg, color = libtcod.white):
  
         #add the new line as a tuple, with the text and the color
         game_msgs.append( (line, color) )
- 
  
 def player_move_or_attack(dx, dy):
     global fov_recompute
@@ -807,7 +824,6 @@ def player_move_or_attack(dx, dy):
     else:
         player.move(dx, dy)
         fov_recompute = True
- 
  
 def menu(header, options, width):
     if len(options) > 26: raise ValueError('Cannot have a menu with more than 26 options.')
@@ -992,8 +1008,15 @@ def check_level_up():
         elif choice == 2:
             player.fighter.base_defense += 1
  
-def player_death(player):
-    #the game ended!
+def player_death(player,attacker):
+    message('Player is killed by ' + attacker.owner.name.capitalize() + '.')
+    global killerrabbit_death
+    if attacker.owner.name == 'killerrabbit':
+        killerrabbit_death = True
+        message('Death Awaits You All With Nasty Big Pointy Teeth!', libtcod.red)
+        message('Beware the Killerrabbit!', libtcod.red)
+
+    #End the game
     global game_state
     message('You died!', libtcod.red)
     game_state = 'dead'
@@ -1001,11 +1024,14 @@ def player_death(player):
     #for added effect, transform the player into a corpse!
     player.char = '%'
     player.color = libtcod.dark_red
- 
-def monster_death(monster):
+    
+def monster_death(monster,attacker):
+    #yield experience to the attacker
+    attacker.xp += monster.fighter.xp
+    message('The ' + monster.name + ' is dead! You gain ' + str(monster.fighter.xp) + ' experience points.', libtcod.orange)
+    
     #transform it into a nasty corpse! it doesn't block, can't be
     #attacked and doesn't move
-    message('The ' + monster.name + ' is dead! You gain ' + str(monster.fighter.xp) + ' experience points.', libtcod.orange)
     monster.char = '%'
     monster.color = libtcod.dark_red
     monster.blocks = False
@@ -1069,6 +1095,7 @@ def cast_heal():
     player.fighter.heal(HEAL_AMOUNT)
  
 def cast_lightning():
+    global player
     #find closest enemy (inside a maximum range) and damage it
     monster = closest_monster(LIGHTNING_RANGE)
     if monster is None:  #no enemy found within maximum range
@@ -1078,9 +1105,10 @@ def cast_lightning():
     #zap it!
     message('A lighting bolt strikes the ' + monster.name + ' with a loud thunder! The damage is '
             + str(LIGHTNING_DAMAGE) + ' hit points.', libtcod.light_blue)
-    monster.fighter.take_damage(LIGHTNING_DAMAGE)
+    monster.fighter.take_damage(LIGHTNING_DAMAGE,player.fighter)
  
 def cast_fireball():
+    global player
     #ask the player for a target tile to throw a fireball at
     message('Left-click a target tile for the fireball, or right-click to cancel.', libtcod.light_cyan)
     (x, y) = target_tile()
@@ -1090,7 +1118,7 @@ def cast_fireball():
     for obj in objects:  #damage every fighter in range, including the player
         if obj.distance(x, y) <= FIREBALL_RADIUS and obj.fighter:
             message('The ' + obj.name + ' gets burned for ' + str(FIREBALL_DAMAGE) + ' hit points.', libtcod.orange)
-            obj.fighter.take_damage(FIREBALL_DAMAGE)
+            obj.fighter.take_damage(FIREBALL_DAMAGE,player.fighter)
  
 def cast_confuse():
     #ask the player for a target to confuse
@@ -1103,7 +1131,6 @@ def cast_confuse():
     monster.ai = ConfusedMonster(old_ai)
     monster.ai.owner = monster  #tell the new component who owns it
     message('The eyes of the ' + monster.name + ' look vacant, as he starts to stumble around!', libtcod.light_green)
- 
  
 def save_game():
     #open a new empty shelve (possibly overwriting an old one) to write the game data
@@ -1141,6 +1168,13 @@ def new_game():
     global player, inventory, game_msgs, game_state, dungeon_level, key, race
     race_choice = None
 
+    global player, inventory, game_msgs, game_state, dungeon_level
+    global killerrabbit_created, killerrabbit_death 
+    
+    #Reset important events
+    killerrabbit_created = False
+    killerrabbit_death = False
+ 
     #create object representing the player
     fighter_component = Fighter(hp=100, defense=1, power=2, xp=0, death_function=player_death)
     player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
@@ -1227,7 +1261,7 @@ def play_game():
  
         #level up if needed
         check_level_up()
- 
+       
         #erase all objects at their old locations, before they move
         for object in objects:
             object.clear()
@@ -1245,7 +1279,7 @@ def play_game():
                     object.ai.take_turn()
  
 def main_menu():
-    img = libtcod.image_load('menu_background.png')
+    img = libtcod.image_load('./media/menu_background.png')
  
     while not libtcod.console_is_window_closed():
         #show the background image, at twice the regular console resolution
@@ -1274,6 +1308,7 @@ def main_menu():
         elif choice == 2:  #quit
             break
  
+
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Crunchbang Project', False)
 libtcod.sys_set_fps(LIMIT_FPS)

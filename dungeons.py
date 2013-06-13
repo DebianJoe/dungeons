@@ -562,7 +562,7 @@ def place_objects(room):
     monster_chances['troll'] = from_dungeon_level([[15, 3], [30, 5], [60, 7]])
     monster_chances['killerrabbit'] = from_dungeon_level([[100, 5], [50, 3]])
     #Uncomment this line to meet the Killerrabbit in level 1, hopefully he won't spawn at the entrance!
-    monster_chances['killerrabbit'] = from_dungeon_level([[100, 5], [50, 3], [100, 0]]) 
+    #monster_chances['killerrabbit'] = from_dungeon_level([[100, 5], [50, 3], [100, 0]]) 
     global killerrabbit_created #this variable is used to make sure we only have one killerrabbit
     
     #maximum number of items per room

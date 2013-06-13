@@ -571,11 +571,11 @@ def place_objects(room):
     #chance of each item (by default they have a chance of 0 at level 1, which then goes up)
     item_chances = {}
     item_chances['heal'] = 35  #healing potion always shows up, even if all other items have 0 chance
-    item_chances['lightning'] = from_dungeon_level([[25, 4]])
-    item_chances['fireball'] =  from_dungeon_level([[25, 6]])
-    item_chances['confuse'] =   from_dungeon_level([[10, 2]])
-    item_chances['sword'] =     from_dungeon_level([[5, 4]])
-    item_chances['shield'] =    from_dungeon_level([[15, 8]])
+    item_chances['lightning'] = from_dungeon_level([[25, 4],[100, 0]])
+    item_chances['fireball'] =  from_dungeon_level([[25, 6],[100, 0]])
+    item_chances['confuse'] =   from_dungeon_level([[10, 2],[100, 0]])
+    item_chances['sword'] =     from_dungeon_level([[5, 4],[100, 0]])
+    item_chances['shield'] =    from_dungeon_level([[15, 8],[100, 0]])
  
  
     #choose random number of monsters
@@ -1088,6 +1088,7 @@ def cast_heal():
     player.fighter.heal(HEAL_AMOUNT)
  
 def cast_lightning():
+    global player
     #find closest enemy (inside a maximum range) and damage it
     monster = closest_monster(LIGHTNING_RANGE)
     if monster is None:  #no enemy found within maximum range
@@ -1097,9 +1098,10 @@ def cast_lightning():
     #zap it!
     message('A lighting bolt strikes the ' + monster.name + ' with a loud thunder! The damage is '
             + str(LIGHTNING_DAMAGE) + ' hit points.', libtcod.light_blue)
-    monster.fighter.take_damage(LIGHTNING_DAMAGE)
+    monster.fighter.take_damage(LIGHTNING_DAMAGE,player.fighter)
  
 def cast_fireball():
+    global player
     #ask the player for a target tile to throw a fireball at
     message('Left-click a target tile for the fireball, or right-click to cancel.', libtcod.light_cyan)
     (x, y) = target_tile()
@@ -1109,7 +1111,7 @@ def cast_fireball():
     for obj in objects:  #damage every fighter in range, including the player
         if obj.distance(x, y) <= FIREBALL_RADIUS and obj.fighter:
             message('The ' + obj.name + ' gets burned for ' + str(FIREBALL_DAMAGE) + ' hit points.', libtcod.orange)
-            obj.fighter.take_damage(FIREBALL_DAMAGE)
+            obj.fighter.take_damage(FIREBALL_DAMAGE,player.fighter)
  
 def cast_confuse():
     #ask the player for a target to confuse

@@ -885,7 +885,7 @@ def msgbox(text, width=50):
     menu(text, [], width)  #use menu() as a sort of "message box"
  
 def handle_keys():
-    global key
+    global key, race
  
     if key.vk == libtcod.KEY_ENTER and key.lalt:
         #Alt+Enter: toggle fullscreen
@@ -942,7 +942,8 @@ def handle_keys():
                 level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
                 equipped_list = ', '.join(item.owner.name for item in get_all_equipped(player))
                 equipped_list = 'Equipped: ' + str(equipped_list and equipped_list or 'bare handed')
-                msgbox('Character Information\n\nLevel: ' + str(player.level) + '\nExperience: ' + str(player.fighter.xp) +
+                msgbox('Character Information\n\nLevel: ' + str(player.level) + ' ' + str(race) +
+                       '\nExperience: ' + str(player.fighter.xp) +
                        '\nExperience to level up: ' + str(level_up_xp) + '\n\nMaximum HP: ' + str(player.fighter.max_hp) +
                        '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(player.fighter.defense) +
                        '\n\n' + str(equipped_list), CHARACTER_SCREEN_WIDTH)
@@ -1115,11 +1116,12 @@ def save_game():
     file['game_msgs'] = game_msgs
     file['game_state'] = game_state
     file['dungeon_level'] = dungeon_level
+    file['race'] = race
     file.close()
  
 def load_game():
     #open the previously saved shelve and load the game data
-    global map, objects, player, stairs, inventory, game_msgs, game_state, dungeon_level
+    global map, objects, player, stairs, inventory, game_msgs, game_state, dungeon_level, race
  
     file = shelve.open('savegame', 'r')
     map = file['map']
@@ -1130,12 +1132,13 @@ def load_game():
     game_msgs = file['game_msgs']
     game_state = file['game_state']
     dungeon_level = file['dungeon_level']
+    race = file['race']
     file.close()
  
     initialize_fov()
  
 def new_game():
-    global player, inventory, game_msgs, game_state, dungeon_level, key
+    global player, inventory, game_msgs, game_state, dungeon_level, key, race
     race_choice = None
 
     #create object representing the player

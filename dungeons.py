@@ -1144,12 +1144,14 @@ def save_game():
     file['game_state'] = game_state
     file['dungeon_level'] = dungeon_level
     file['race'] = race
+    file['events'] = [killerrabbit_created, killerrabbit_death]
     file.close()
  
 def load_game():
     #open the previously saved shelve and load the game data
     global map, objects, player, stairs, inventory, game_msgs, game_state, dungeon_level, race
- 
+    global killerrabbit_created, killerrabbit_death 
+       
     file = shelve.open('savegame', 'r')
     map = file['map']
     objects = file['objects']
@@ -1160,6 +1162,7 @@ def load_game():
     game_state = file['game_state']
     dungeon_level = file['dungeon_level']
     race = file['race']
+    killerrabbit_created, killerrabbit_death = file['events']
     file.close()
  
     initialize_fov()

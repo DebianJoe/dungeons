@@ -1156,7 +1156,7 @@ def cast_lightning():
 def cast_fireball():
     global player
     #ask the player for a target tile to throw a fireball at
-    message('Left-click a target tile for the fireball, or right-click to cancel.', libtcod.light_cyan)
+    message(TARGET_MESSAGE % 'fireball attack', libtcod.light_cyan)
     (x, y) = target_tile()
     if x is None: return 'cancelled'
     message('The fireball explodes, burning everything within ' + str(FIREBALL_RADIUS) + ' tiles!', libtcod.orange)
@@ -1168,7 +1168,7 @@ def cast_fireball():
  
 def cast_confuse():
     #ask the player for a target to confuse
-    message('Left-click an enemy to confuse it, or right-click to cancel.', libtcod.light_cyan)
+    message(TARGET_MESSAGE % 'confusion', libtcod.light_cyan)
     monster = target_monster(CONFUSE_RANGE)
     if monster is None: return 'cancelled'
  

@@ -966,7 +966,7 @@ def handle_keys():
                     next_level()
  
             return 'didnt-take-turn'
- 
+
 def check_level_up():
     #see if the player's experience is enough to level-up
     level_up_xp = LEVEL_UP_BASE + player.level * LEVEL_UP_FACTOR
@@ -1135,8 +1135,9 @@ def load_game():
     initialize_fov()
  
 def new_game():
-    global player, inventory, game_msgs, game_state, dungeon_level
- 
+    global player, inventory, game_msgs, game_state, dungeon_level, key
+    race_choice = None
+
     #create object representing the player
     fighter_component = Fighter(hp=100, defense=1, power=2, xp=0, death_function=player_death)
     player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
@@ -1156,13 +1157,32 @@ def new_game():
  
     #a warm welcoming message!
     message('The UNDERDEEP greets you with a cold breeze that smells of evil. (Press "H" for HELP)', libtcod.red)
- 
+
     #initial equipment: a dagger
     equipment_component = Equipment(slot='right hand', power_bonus=2)
     obj = Object(0, 0, '-', 'dagger', libtcod.sky, equipment=equipment_component)
     inventory.append(obj)
     equipment_component.equip()
     obj.always_visible = True
+    
+    img = libtcod.image_load('menu_background.png')
+    libtcod.image_blit_2x(img, 0, 0, 0)
+    msgbox("What is your decendancy young adventurer?\n" +
+               "Press ENTER to Continue")
+    libtcod.console_wait_for_keypress(True)
+    libtcod.image_blit_2x(img, 0, 0, 0)
+    while race_choice == None:  #keep asking until a choice is made
+            race_choice = menu('Choose Your Race:\n',
+                          ['Human',
+                           'Elf',
+                           'Dwarf'], LEVEL_SCREEN_WIDTH)
+    if race_choice == 0:
+        race = 'Human'
+    elif race_choice == 1:
+        race = 'Elf'
+    elif race_choice == 2:
+        race = 'Dwarf'
+
  
 def next_level():
     #advance to the next level
@@ -1252,7 +1272,7 @@ def main_menu():
             break
  
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
-libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/libtcod tutorial', False)
+libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Crunchbang Project', False)
 libtcod.sys_set_fps(LIMIT_FPS)
 con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
 panel = libtcod.console_new(SCREEN_WIDTH, PANEL_HEIGHT)

@@ -27,11 +27,7 @@ I had some difficulty with libtcod.so on Crunchbang Waldorf 64. There is an inci
 
 1.C Download the media files
 ----------------------------
-Grab the font 
-http://postimg.org/image/a44ny3vgv
-Grab the background image
-http://postimg.org/image/dblayu895
-Copy both to your dungeons directory
+This is no longer required, the media files now come via Github
 
 1.D Run it
 ----------

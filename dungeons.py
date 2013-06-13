@@ -1202,7 +1202,7 @@ def new_game():
     equipment_component.equip()
     obj.always_visible = True
     
-    img = libtcod.image_load('menu_background.png')
+    img = libtcod.image_load('./media/menu_background.png')
     libtcod.image_blit_2x(img, 0, 0, 0)
     msgbox("What is your decendancy young adventurer?\n" +
                "Press ENTER to Continue")
@@ -1309,7 +1309,7 @@ def main_menu():
             break
  
 
-libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
+libtcod.console_set_custom_font('./media/arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Crunchbang Project', False)
 libtcod.sys_set_fps(LIMIT_FPS)
 con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)

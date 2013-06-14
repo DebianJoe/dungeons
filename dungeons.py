@@ -80,6 +80,8 @@ TORCH_RADIUS = 10
  
 LIMIT_FPS = 20  #20 frames-per-second maximum
  
+# game messages
+TARGET_MESSAGE = 'Target an enemy for %s with the mouse or keypad.'
  
 color_dark_wall = libtcod.Color(130, 110, 50) * libtcod.dark_grey * 0.4
 color_dark_wall2 = libtcod.light_orange * libtcod.dark_grey * 0.2
@@ -291,7 +293,7 @@ class Item:
         self.stack = [self]
         
     def stacksize(self):
-		return len(self.stack)
+        return len(self.stack)
  
     def pick_up(self):
         #add to the player's inventory and remove from the map        
@@ -332,19 +334,19 @@ class Item:
             self.owner.equipment.dequip()
  
         if self.stackable and self.stacksize() > 1:
-			#Drop 1 item of the stack
-			dropobject = self.stack.pop()
-			dropobject.x = player.x
-			dropobject.y = player.y
-			objects.append(dropobject)
-			message('You dropped a ' + dropobject.name + '. (' + str(self.stacksize()) + ' remaining)', libtcod.yellow)
+            #Drop 1 item of the stack
+            dropobject = self.stack.pop()
+            dropobject.x = player.x
+            dropobject.y = player.y
+            objects.append(dropobject)
+            message('You dropped a ' + dropobject.name + '. (' + str(self.stacksize()) + ' remaining)', libtcod.yellow)
         else:
-	        #add to the map and remove from the player's inventory. also, place it at the player's coordinates
-	        objects.append(self.owner)
-	        inventory.remove(self.owner)
-	        self.owner.x = player.x
-	        self.owner.y = player.y
-	        message('You dropped a ' + self.owner.name + '.', libtcod.yellow)
+            #add to the map and remove from the player's inventory. also, place it at the player's coordinates
+            objects.append(self.owner)
+            inventory.remove(self.owner)
+            self.owner.x = player.x
+            self.owner.y = player.y
+            message('You dropped a ' + self.owner.name + '.', libtcod.yellow)
  
     def use(self):
         #special case: if the object has the Equipment component, the "use" action is to equip/dequip
@@ -357,11 +359,11 @@ class Item:
             message('The ' + self.owner.name + ' cannot be used.')
         else:
             if self.use_function() != 'cancelled':
-				if self.stackable and self.stacksize() > 1:
-					self.stack.pop()
-					message('You used a ' + self.owner.name + '. (' + str(self.stacksize()) + ' remaining)', libtcod.yellow)
-				else:
-					inventory.remove(self.owner)  #destroy after use, unless it was cancelled for some reason
+                if self.stackable and self.stacksize() > 1:
+                    self.stack.pop()
+                    message('You used a ' + self.owner.name + '. (' + str(self.stacksize()) + ' remaining)', libtcod.yellow)
+                else:
+                    inventory.remove(self.owner)  #destroy after use, unless it was cancelled for some reason
  
 class Equipment:
     #an object that can be equipped, yielding bonuses. automatically adds the Item component.
@@ -576,7 +578,7 @@ def place_objects(room):
     item_chances['confuse'] =   from_dungeon_level([[10, 2]])
     item_chances['sword'] =     from_dungeon_level([[5, 4]])
     item_chances['shield'] =    from_dungeon_level([[15, 8]])
-    item_chances['cloak'] = 	from_dungeon_level([[5, 2]])
+    item_chances['cloak'] =     from_dungeon_level([[5, 2]])
  
  
     #choose random number of monsters
@@ -608,17 +610,17 @@ def place_objects(room):
             
             elif choice == 'killerrabbit':
                 if killerrabbit_created:
-					#create a rat instead
-					fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
-					ai_component = BasicMonster()
-					monster = Object(x, y, 'r', 'rat', libtcod.white,
+                    #create a rat instead
+                    fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
+                    ai_component = BasicMonster()
+                    monster = Object(x, y, 'r', 'rat', libtcod.white,
                                 blocks=True, fighter=fighter_component, ai=ai_component)
                 else:
-					#create a killerrabbit
-					killerrabbit_created=True
-					fighter_component = Fighter(hp=20, defense=0, power=200, xp=1000, death_function=monster_death)
-					ai_component = BasicMonster()
-					monster = Object(x, y, 'R', 'killerrabbit', libtcod.red,
+                    #create a killerrabbit
+                    killerrabbit_created=True
+                    fighter_component = Fighter(hp=20, defense=0, power=200, xp=1000, death_function=monster_death)
+                    ai_component = BasicMonster()
+                    monster = Object(x, y, 'R', 'killerrabbit', libtcod.red,
                                     blocks=True, fighter=fighter_component, ai=ai_component)
             
             elif choice == 'rat':
@@ -673,10 +675,10 @@ def place_objects(room):
                 item = Object(x, y, '[', 'shield', libtcod.darker_orange, equipment=equipment_component)
             
             elif choice == 'cloak':
- 				#create a cloak
- 				equipment_component = Equipment(slot='back', max_hp_bonus=10)
- 				item = Object(x, y, ')', 'cloak', libtcod.darker_green, equipment=equipment_component)
- 			
+                #create a cloak
+                equipment_component = Equipment(slot='back', max_hp_bonus=10)
+                item = Object(x, y, ')', 'cloak', libtcod.darker_green, equipment=equipment_component)
+            
             objects.append(item)
             item.send_to_back()  #items appear below other objects
             item.always_visible = True  #items are visible even out-of-FOV, if in an explored area
@@ -765,9 +767,9 @@ def render_all():
  
     #if killed by killerrabbit show special death screen
     if killerrabbit_death and game_state == 'dead':
-		blood = libtcod.image_load('./media/killerrabbit.png')
-		libtcod.image_set_key_color(blood, libtcod.black)
-		libtcod.image_blit_2x(blood, con, 0, 0)
+        blood = libtcod.image_load('./media/killerrabbit.png')
+        libtcod.image_set_key_color(blood, libtcod.black)
+        libtcod.image_blit_2x(blood, con, 0, 0)
   
     #prepare to render the GUI panel
     libtcod.console_set_default_background(panel, libtcod.black)
@@ -877,7 +879,7 @@ def inventory_menu(header):
             text = itemobject.name
             #show additional information, in case of a stack of items
             if itemobject.item and itemobject.item.stackable and itemobject.item.stacksize() > 1:
-				text = str(itemobject.item.stacksize()) + ' ' + text + 's'
+                text = str(itemobject.item.stacksize()) + ' ' + text + 's'
             #show additional information, in case it's equipped
             if itemobject.equipment and itemobject.equipment.is_equipped:
                 text = text + ' (on ' + itemobject.equipment.slot + ')'
@@ -968,7 +970,10 @@ def handle_keys():
                 msgbox('The ARROW keys move you around\n' +
                        'Press "g" to GET items\n' + 'Press "<" to go down stairs\n' + 'Press "c" for Character information\n' +
                        'Press "i" for your INVENTORY\nPress "d" to DROP an item\nPress "s" for the STORY\nPress "esc" to exit\n' + 
-                       'Press "Alt+Enter" for fullscreen\nPress "h" to see this screen at any time')
+                       'Press "Alt+Enter" for fullscreen\nPress "h" to see this screen at any time' +
+                       '\n\nTarget enemies with the mouse or keypad.' +
+                       '\nConfirm target with left-click or <Enter>.' +
+                       '\nCancel target with right-click or <Esc>.')
  
             if key_char == 's':
                 msgbox('You are a young adventurer who has entered THE UNDERDEEP\n\n  This cave has had many '+
@@ -1043,11 +1048,19 @@ def monster_death(monster,attacker):
 def target_tile(max_range=None):
     global key, mouse
     #return the position of a tile left-clicked in player's FOV (optionally in a range), or (None,None) if right-clicked.
+    # track the position of keyboard targeting
+    target_x, target_y = (player.x, player.y)
+    target_col = libtcod.console_get_char_background(con, target_x, target_y)
     while True:
         #render the screen. this erases the inventory and shows the names of objects under the mouse.
         libtcod.console_flush()
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
         render_all()
+
+        # replace the previous background
+        # so that if we return it does not leave artifacts on screen
+        libtcod.console_set_char_background(con, target_x, target_y,
+                                        target_col, flag=libtcod.BKGND_SET)
  
         (x, y) = (mouse.cx, mouse.cy)
  
@@ -1058,7 +1071,40 @@ def target_tile(max_range=None):
         if (mouse.lbutton_pressed and libtcod.map_is_in_fov(fov_map, x, y) and
                 (max_range is None or player.distance(x, y) <= max_range)):
             return (x, y)
- 
+
+        if (key.vk in (libtcod.KEY_ENTER, libtcod.KEY_KPENTER) and
+            libtcod.map_is_in_fov(fov_map, target_x, target_y) and
+                (max_range is None or
+                player.distance(target_x, target_y) <= max_range)):
+            return (target_x, target_y)
+
+        # move targeting reticule
+        target_keys = {
+                    libtcod.KEY_KP4: (-1, +0),
+                    libtcod.KEY_KP6: (+1, +0),
+                    libtcod.KEY_KP2: (+0, +1),
+                    libtcod.KEY_KP8: (+0, -1),
+                    libtcod.KEY_KP7: (-1, -1),
+                    libtcod.KEY_KP9: (+1, -1),
+                    libtcod.KEY_KP1: (-1, +1),
+                    libtcod.KEY_KP3: (+1, +1),
+                    }
+
+        if key.vk in target_keys.keys():
+            # replace the previous background
+            libtcod.console_set_char_background(con, target_x, target_y,
+                                            target_col, flag=libtcod.BKGND_SET)
+            # move the reticule: adjust current position by target_keys offset
+            target_x += target_keys[key.vk][0]
+            target_y += target_keys[key.vk][1]
+            # get the new background
+            target_col = libtcod.console_get_char_background(con, 
+                                                    target_x, target_y)
+
+        # draw the targeting reticule
+        libtcod.console_set_char_background(con, target_x, target_y,
+                                        libtcod.dark_flame, flag=libtcod.BKGND_SET)
+
 def target_monster(max_range=None):
     #returns a clicked monster inside FOV up to a range, or None if right-clicked
     while True:
@@ -1110,7 +1156,7 @@ def cast_lightning():
 def cast_fireball():
     global player
     #ask the player for a target tile to throw a fireball at
-    message('Left-click a target tile for the fireball, or right-click to cancel.', libtcod.light_cyan)
+    message(TARGET_MESSAGE % 'fireball attack', libtcod.light_cyan)
     (x, y) = target_tile()
     if x is None: return 'cancelled'
     message('The fireball explodes, burning everything within ' + str(FIREBALL_RADIUS) + ' tiles!', libtcod.orange)
@@ -1122,7 +1168,7 @@ def cast_fireball():
  
 def cast_confuse():
     #ask the player for a target to confuse
-    message('Left-click an enemy to confuse it, or right-click to cancel.', libtcod.light_cyan)
+    message(TARGET_MESSAGE % 'confusion', libtcod.light_cyan)
     monster = target_monster(CONFUSE_RANGE)
     if monster is None: return 'cancelled'
  

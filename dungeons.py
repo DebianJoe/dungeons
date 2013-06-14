@@ -80,6 +80,8 @@ TORCH_RADIUS = 10
  
 LIMIT_FPS = 20  #20 frames-per-second maximum
  
+# game messages
+TARGET_MESSAGE = 'Target an enemy for %s with the mouse or keypad.'
  
 color_dark_wall = libtcod.Color(130, 110, 50) * libtcod.dark_grey * 0.4
 color_dark_wall2 = libtcod.light_orange * libtcod.dark_grey * 0.2
@@ -968,7 +970,10 @@ def handle_keys():
                 msgbox('The ARROW keys move you around\n' +
                        'Press "g" to GET items\n' + 'Press "<" to go down stairs\n' + 'Press "c" for Character information\n' +
                        'Press "i" for your INVENTORY\nPress "d" to DROP an item\nPress "s" for the STORY\nPress "esc" to exit\n' + 
-                       'Press "Alt+Enter" for fullscreen\nPress "h" to see this screen at any time')
+                       'Press "Alt+Enter" for fullscreen\nPress "h" to see this screen at any time' +
+                       '\n\nTarget enemies with the mouse or keypad.' +
+                       '\nConfirm target with left-click or <Enter>.' +
+                       '\nCancel target with right-click or <Esc>.')
  
             if key_char == 's':
                 msgbox('You are a young adventurer who has entered THE UNDERDEEP\n\n  This cave has had many '+
@@ -1043,11 +1048,19 @@ def monster_death(monster,attacker):
 def target_tile(max_range=None):
     global key, mouse
     #return the position of a tile left-clicked in player's FOV (optionally in a range), or (None,None) if right-clicked.
+    # track the position of keyboard targeting
+    target_x, target_y = (player.x, player.y)
+    target_col = libtcod.console_get_char_background(con, target_x, target_y)
     while True:
         #render the screen. this erases the inventory and shows the names of objects under the mouse.
         libtcod.console_flush()
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS | libtcod.EVENT_MOUSE, key, mouse)
         render_all()
+
+        # replace the previous background
+        # so that if we return it does not leave artifacts on screen
+        libtcod.console_set_char_background(con, target_x, target_y,
+                                        target_col, flag=libtcod.BKGND_SET)
  
         (x, y) = (mouse.cx, mouse.cy)
  
@@ -1058,7 +1071,40 @@ def target_tile(max_range=None):
         if (mouse.lbutton_pressed and libtcod.map_is_in_fov(fov_map, x, y) and
                 (max_range is None or player.distance(x, y) <= max_range)):
             return (x, y)
- 
+
+        if (key.vk in (libtcod.KEY_ENTER, libtcod.KEY_KPENTER) and
+            libtcod.map_is_in_fov(fov_map, target_x, target_y) and
+                (max_range is None or
+                player.distance(target_x, target_y) <= max_range)):
+            return (target_x, target_y)
+
+        # move targeting reticule
+        target_keys = {
+                    libtcod.KEY_KP4: (-1, +0),
+                    libtcod.KEY_KP6: (+1, +0),
+                    libtcod.KEY_KP2: (+0, +1),
+                    libtcod.KEY_KP8: (+0, -1),
+                    libtcod.KEY_KP7: (-1, -1),
+                    libtcod.KEY_KP9: (+1, -1),
+                    libtcod.KEY_KP1: (-1, +1),
+                    libtcod.KEY_KP3: (+1, +1),
+                    }
+
+        if key.vk in target_keys.keys():
+            # replace the previous background
+            libtcod.console_set_char_background(con, target_x, target_y,
+                                            target_col, flag=libtcod.BKGND_SET)
+            # move the reticule: adjust current position by target_keys offset
+            target_x += target_keys[key.vk][0]
+            target_y += target_keys[key.vk][1]
+            # get the new background
+            target_col = libtcod.console_get_char_background(con, 
+                                                    target_x, target_y)
+
+        # draw the targeting reticule
+        libtcod.console_set_char_background(con, target_x, target_y,
+                                        libtcod.dark_flame, flag=libtcod.BKGND_SET)
+
 def target_monster(max_range=None):
     #returns a clicked monster inside FOV up to a range, or None if right-clicked
     while True:
@@ -1110,7 +1156,7 @@ def cast_lightning():
 def cast_fireball():
     global player
     #ask the player for a target tile to throw a fireball at
-    message('Left-click a target tile for the fireball, or right-click to cancel.', libtcod.light_cyan)
+    message(TARGET_MESSAGE % 'fireball attack', libtcod.light_cyan)
     (x, y) = target_tile()
     if x is None: return 'cancelled'
     message('The fireball explodes, burning everything within ' + str(FIREBALL_RADIUS) + ' tiles!', libtcod.orange)
@@ -1122,7 +1168,7 @@ def cast_fireball():
  
 def cast_confuse():
     #ask the player for a target to confuse
-    message('Left-click an enemy to confuse it, or right-click to cancel.', libtcod.light_cyan)
+    message(TARGET_MESSAGE % 'confusion', libtcod.light_cyan)
     monster = target_monster(CONFUSE_RANGE)
     if monster is None: return 'cancelled'
  

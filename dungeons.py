@@ -902,6 +902,37 @@ def inventory_find(itemname):
 def msgbox(text, width=50):
     menu(text, [], width)  #use menu() as a sort of "message box"
  
+def story():
+    global race
+    if race == 'Human':
+        msgbox('You are a young adventurer who has entered THE UNDERDEEP\n\n'+
+               'This cave has had many '+
+               'horrible stories told about it around the campfires at night,'+
+               ' but also stories of the amulet of the flying circus, which '+
+               'could give great power to the wearer.'+
+               '\n\nYou, being a brave explorer, grab your trusty dagger '+
+               'and descend into the cave to find out what is really' +
+                ' hiding in the dark shadows of the deep.\n\n'+
+               'Use your wits to gather items to explore the depths of the '+
+               'cave.  Be warned, though, that many perils await you.')
+
+    elif race == 'Elf':
+        msgbox('The elves of Windfall, being cursed by a terrible witch '+
+               'have sent you, a young elvish warrior into the UNDERDEEP\n\n'+
+               '...a cave that once belonged to the dwarves, but has since '+
+               'fallen home to horrific monsters under the evil of the '+
+               'the Necromancer Malfuriul the Vast One.\n\n' +
+               'You pick up your trusty dagger '+
+               'vowing to recover the amulet of the flying circus\n' +
+               '...and return your people to thier former glory.')
+
+    elif race == 'Dwarf':
+        msgbox('The UNDERDEEP, once home to the dwarvish people '+
+               'has fallen under the spell of Malfuriul the Vast One\n\n'+
+               'You pick up the dagger of your grandfather, Norat Longbeard '+
+               ',and vow to reclaim the amulet of the flying circus to '+
+               'cleanse the evil from your ancestral home.')
+
 def handle_keys():
     global key, race
  
@@ -976,11 +1007,9 @@ def handle_keys():
                        '\nCancel target with right-click or <Esc>.')
  
             if key_char == 's':
-                msgbox('You are a young adventurer who has entered THE UNDERDEEP\n\n  This cave has had many '+
-                       'horrible stories told about it around the campfires at night.\n\n  You, being a brave ' +
-                       'explorer, grab your trusty dagger and descent into the cave to find out what is really' +
-                       ' hiding in the dark shadows of the deep.\n\n  Use your wits to gather items to explore ' +
-                       'the depths of the cave.  Be warned, though, that many perils await you.')
+                #makes call to funtion "Story"
+                #which is specific to race
+                story()
 
             if key_char == '<':
                 #go down stairs, if the player is on them
@@ -1224,7 +1253,13 @@ def new_game():
     killerrabbit_death = False
  
     #create object representing the player
-    fighter_component = Fighter(hp=100, defense=1, power=2, xp=0, death_function=player_death)
+    if race == 'Dwarf':
+        fighter_component = Fighter(hp=120, defense=1, power=2, xp=0, death_function=player_death)
+    elif race == 'Elf':
+        fighter_component = Fighter(hp=100, defense=2, power=2, xp=0, death_function=player_death)
+    elif race == 'Human':
+        fighter_component = Fighter(hp=100, defense=1, power=3, xp=0, death_function=player_death)
+
     player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
  
     player.level = 1

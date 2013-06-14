@@ -1215,7 +1215,6 @@ def load_game():
  
 def new_game():
     global player, inventory, game_msgs, game_state, dungeon_level, key, race
-    race_choice = None
 
     global player, inventory, game_msgs, game_state, dungeon_level
     global killerrabbit_created, killerrabbit_death 
@@ -1250,24 +1249,6 @@ def new_game():
     inventory.append(obj)
     equipment_component.equip()
     obj.always_visible = True
-    
-    img = libtcod.image_load('./media/menu_background.png')
-    libtcod.image_blit_2x(img, 0, 0, 0)
-    msgbox("What is your decendancy young adventurer?\n" +
-               "Press ENTER to Continue")
-    libtcod.console_wait_for_keypress(True)
-    libtcod.image_blit_2x(img, 0, 0, 0)
-    while race_choice == None:  #keep asking until a choice is made
-            race_choice = menu('Choose Your Race:\n',
-                          ['Human',
-                           'Elf',
-                           'Dwarf'], LEVEL_SCREEN_WIDTH)
-    if race_choice == 0:
-        race = 'Human'
-    elif race_choice == 1:
-        race = 'Elf'
-    elif race_choice == 2:
-        race = 'Dwarf'
 
  
 def next_level():
@@ -1345,8 +1326,9 @@ def main_menu():
         choice = menu('', ['Play a new game', 'Continue last game', 'Quit'], 24)
  
         if choice == 0:  #new game
-            new_game()
-            play_game()
+            #new_game()
+            #play_game()
+            race_menu()
         if choice == 1:  #load last game
             try:
                 load_game()
@@ -1356,7 +1338,30 @@ def main_menu():
             play_game()
         elif choice == 2:  #quit
             break
- 
+
+def race_menu():
+    global race
+    race_choice = None
+    #Opening Menu for Character Racial Selection     
+    img = libtcod.image_load('./media/menu_background.png')
+    libtcod.image_blit_2x(img, 0, 0, 0)
+    msgbox("What is your decendancy young adventurer?\n" +
+               "Press ENTER to Continue")
+    libtcod.console_wait_for_keypress(True)
+    libtcod.image_blit_2x(img, 0, 0, 0)
+    while race_choice == None:  #keep asking until a choice is made
+            race_choice = menu('Choose Your Race:\n',
+                          ['Human',
+                           'Elf',
+                           'Dwarf'], LEVEL_SCREEN_WIDTH)
+    if race_choice == 0:
+        race = 'Human'
+    elif race_choice == 1:
+        race = 'Elf'
+    elif race_choice == 2:
+        race = 'Dwarf'
+    new_game()
+    play_game()
 
 libtcod.console_set_custom_font('./media/arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Crunchbang Project', False)

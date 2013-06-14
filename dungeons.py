@@ -291,7 +291,7 @@ class Item:
         self.stack = [self]
         
     def stacksize(self):
-		return len(self.stack)
+        return len(self.stack)
  
     def pick_up(self):
         #add to the player's inventory and remove from the map        
@@ -332,19 +332,19 @@ class Item:
             self.owner.equipment.dequip()
  
         if self.stackable and self.stacksize() > 1:
-			#Drop 1 item of the stack
-			dropobject = self.stack.pop()
-			dropobject.x = player.x
-			dropobject.y = player.y
-			objects.append(dropobject)
-			message('You dropped a ' + dropobject.name + '. (' + str(self.stacksize()) + ' remaining)', libtcod.yellow)
+            #Drop 1 item of the stack
+            dropobject = self.stack.pop()
+            dropobject.x = player.x
+            dropobject.y = player.y
+            objects.append(dropobject)
+            message('You dropped a ' + dropobject.name + '. (' + str(self.stacksize()) + ' remaining)', libtcod.yellow)
         else:
-	        #add to the map and remove from the player's inventory. also, place it at the player's coordinates
-	        objects.append(self.owner)
-	        inventory.remove(self.owner)
-	        self.owner.x = player.x
-	        self.owner.y = player.y
-	        message('You dropped a ' + self.owner.name + '.', libtcod.yellow)
+            #add to the map and remove from the player's inventory. also, place it at the player's coordinates
+            objects.append(self.owner)
+            inventory.remove(self.owner)
+            self.owner.x = player.x
+            self.owner.y = player.y
+            message('You dropped a ' + self.owner.name + '.', libtcod.yellow)
  
     def use(self):
         #special case: if the object has the Equipment component, the "use" action is to equip/dequip
@@ -357,11 +357,11 @@ class Item:
             message('The ' + self.owner.name + ' cannot be used.')
         else:
             if self.use_function() != 'cancelled':
-				if self.stackable and self.stacksize() > 1:
-					self.stack.pop()
-					message('You used a ' + self.owner.name + '. (' + str(self.stacksize()) + ' remaining)', libtcod.yellow)
-				else:
-					inventory.remove(self.owner)  #destroy after use, unless it was cancelled for some reason
+                if self.stackable and self.stacksize() > 1:
+                    self.stack.pop()
+                    message('You used a ' + self.owner.name + '. (' + str(self.stacksize()) + ' remaining)', libtcod.yellow)
+                else:
+                    inventory.remove(self.owner)  #destroy after use, unless it was cancelled for some reason
  
 class Equipment:
     #an object that can be equipped, yielding bonuses. automatically adds the Item component.
@@ -576,7 +576,7 @@ def place_objects(room):
     item_chances['confuse'] =   from_dungeon_level([[10, 2]])
     item_chances['sword'] =     from_dungeon_level([[5, 4]])
     item_chances['shield'] =    from_dungeon_level([[15, 8]])
-    item_chances['cloak'] = 	from_dungeon_level([[5, 2]])
+    item_chances['cloak'] =     from_dungeon_level([[5, 2]])
  
  
     #choose random number of monsters
@@ -608,17 +608,17 @@ def place_objects(room):
             
             elif choice == 'killerrabbit':
                 if killerrabbit_created:
-					#create a rat instead
-					fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
-					ai_component = BasicMonster()
-					monster = Object(x, y, 'r', 'rat', libtcod.white,
+                    #create a rat instead
+                    fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
+                    ai_component = BasicMonster()
+                    monster = Object(x, y, 'r', 'rat', libtcod.white,
                                 blocks=True, fighter=fighter_component, ai=ai_component)
                 else:
-					#create a killerrabbit
-					killerrabbit_created=True
-					fighter_component = Fighter(hp=20, defense=0, power=200, xp=1000, death_function=monster_death)
-					ai_component = BasicMonster()
-					monster = Object(x, y, 'R', 'killerrabbit', libtcod.red,
+                    #create a killerrabbit
+                    killerrabbit_created=True
+                    fighter_component = Fighter(hp=20, defense=0, power=200, xp=1000, death_function=monster_death)
+                    ai_component = BasicMonster()
+                    monster = Object(x, y, 'R', 'killerrabbit', libtcod.red,
                                     blocks=True, fighter=fighter_component, ai=ai_component)
             
             elif choice == 'rat':
@@ -673,10 +673,10 @@ def place_objects(room):
                 item = Object(x, y, '[', 'shield', libtcod.darker_orange, equipment=equipment_component)
             
             elif choice == 'cloak':
- 				#create a cloak
- 				equipment_component = Equipment(slot='back', max_hp_bonus=10)
- 				item = Object(x, y, ')', 'cloak', libtcod.darker_green, equipment=equipment_component)
- 			
+                #create a cloak
+                equipment_component = Equipment(slot='back', max_hp_bonus=10)
+                item = Object(x, y, ')', 'cloak', libtcod.darker_green, equipment=equipment_component)
+            
             objects.append(item)
             item.send_to_back()  #items appear below other objects
             item.always_visible = True  #items are visible even out-of-FOV, if in an explored area
@@ -765,9 +765,9 @@ def render_all():
  
     #if killed by killerrabbit show special death screen
     if killerrabbit_death and game_state == 'dead':
-		blood = libtcod.image_load('./media/killerrabbit.png')
-		libtcod.image_set_key_color(blood, libtcod.black)
-		libtcod.image_blit_2x(blood, con, 0, 0)
+        blood = libtcod.image_load('./media/killerrabbit.png')
+        libtcod.image_set_key_color(blood, libtcod.black)
+        libtcod.image_blit_2x(blood, con, 0, 0)
   
     #prepare to render the GUI panel
     libtcod.console_set_default_background(panel, libtcod.black)
@@ -877,7 +877,7 @@ def inventory_menu(header):
             text = itemobject.name
             #show additional information, in case of a stack of items
             if itemobject.item and itemobject.item.stackable and itemobject.item.stacksize() > 1:
-				text = str(itemobject.item.stacksize()) + ' ' + text + 's'
+                text = str(itemobject.item.stacksize()) + ' ' + text + 's'
             #show additional information, in case it's equipped
             if itemobject.equipment and itemobject.equipment.is_equipped:
                 text = text + ' (on ' + itemobject.equipment.slot + ')'

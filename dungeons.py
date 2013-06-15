@@ -31,6 +31,8 @@
 # FrostLock
  
 import libtcodpy as libtcod
+import json
+import ConfigParser
 import math
 import textwrap
 import shelve
@@ -563,12 +565,10 @@ def place_objects(room):
  
     #chance of each monster
     monster_chances = {}
-    monster_chances['zombie'] = 80  #zombie always shows up, even if all other monsters have 0 chance
-    monster_chances['rat'] = from_dungeon_level([[90, 1], [30, 2], [10, 0]])
-    monster_chances['troll'] = from_dungeon_level([[15, 3], [30, 5], [60, 7]])
-    monster_chances['killerrabbit'] = from_dungeon_level([[100, 5], [50, 3]])
-    #Uncomment this line to meet the Killerrabbit in level 1, hopefully he won't spawn at the entrance!
-    #monster_chances['killerrabbit'] = from_dungeon_level([[100, 5], [50, 3], [100, 0]]) 
+    for monster_name in config.get('lists', 'monster list').split(', '):
+        chance_table = json.loads(config.get(monster_name, 'chance'))
+        monster_chances[monster_name] = from_dungeon_level(chance_table)
+
     global killerrabbit_created #this variable is used to make sure we only have one killerrabbit
     
     #maximum number of items per room
@@ -576,15 +576,13 @@ def place_objects(room):
  
     #chance of each item (by default they have a chance of 0 at level 1, which then goes up)
     item_chances = {}
-    item_chances['heal'] = 35  #healing potion always shows up, even if all other items have 0 chance
-    item_chances['lightning'] = from_dungeon_level([[25, 4]])
-    item_chances['fireball'] =  from_dungeon_level([[25, 6]])
-    item_chances['confuse'] =   from_dungeon_level([[10, 2]])
-    item_chances['sword'] =     from_dungeon_level([[5, 4]])
-    item_chances['shield'] =    from_dungeon_level([[15, 8]])
-    item_chances['cloak'] =     from_dungeon_level([[5, 2]])
- 
- 
+    for item_name in config.get('lists', 'item list').split(', '):
+        chance_table = json.loads(config.get(item_name, 'chance'))
+        item_chances[item_name] = from_dungeon_level(chance_table)
+
+    # remember unique monsters
+    uniques = []
+
     #choose random number of monsters
     num_monsters = libtcod.random_get_int(0, 0, max_monsters)
  
@@ -595,48 +593,39 @@ def place_objects(room):
  
         #only place it if the tile is not blocked
         if not is_blocked(x, y):
+            # choose a random monster
             choice = random_choice(monster_chances)
-            if choice == 'zombie':
-                #create a zombie
-                fighter_component = Fighter(hp=20, defense=0, power=4, xp=35, death_function=monster_death)
-                ai_component = BasicMonster()
- 
-                monster = Object(x, y, 'z', 'zombie', libtcod.desaturated_green,
-                                 blocks=True, fighter=fighter_component, ai=ai_component)
- 
-            elif choice == 'troll':
-                #create a troll
-                fighter_component = Fighter(hp=30, defense=2, power=8, xp=100, death_function=monster_death)
-                ai_component = BasicMonster()
- 
-                monster = Object(x, y, 'T', 'troll', libtcod.darker_green,
-                                 blocks=True, fighter=fighter_component, ai=ai_component)
             
-            elif choice == 'killerrabbit':
-                if killerrabbit_created:
-                    #create a rat instead
-                    fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
-                    ai_component = BasicMonster()
-                    monster = Object(x, y, 'r', 'rat', libtcod.white,
-                                blocks=True, fighter=fighter_component, ai=ai_component)
+            # load the monster data from the config
+            monster = dict(config.items(choice))
+            
+            # do not create multiple unique monsters
+            if monster['unique'] == 'True':
+                if choice in uniques:
+                    continue
                 else:
-                    #create a killerrabbit
-                    killerrabbit_created=True
-                    fighter_component = Fighter(hp=20, defense=0, power=200, xp=1000, death_function=monster_death)
-                    ai_component = BasicMonster()
-                    monster = Object(x, y, 'R', 'killerrabbit', libtcod.red,
-                                    blocks=True, fighter=fighter_component, ai=ai_component)
+                    uniques.append(choice)
             
-            elif choice == 'rat':
-                #create a rat
-                fighter_component = Fighter(hp=15, defense=0, power=6, xp=50, death_function=monster_death)
-                ai_component = BasicMonster()
+            # build the monster components
+            fighter_component = Fighter(
+                hp=int(monster['hp']),
+                defense=int(monster['defense']),
+                power=int(monster['power']),
+                xp=int(monster['xp']),
+                death_function=globals().get(monster['death_function'], None))
                 
-                monster = Object(x, y, 'r', 'rat', libtcod.white,
-                                blocks=True, fighter=fighter_component, ai=ai_component)
-             
+            # this gets a class object by name
+            ai_class = globals().get(monster['ai_component'])
+            
+            # and this instanstiates it if not None
+            ai_component = ai_class and ai_class() or None
+            
+            # finally we assemble the monster object
+            monster = Object(x, y, monster['char'], choice,
+                libtcod.Color(*tuple(json.loads(monster['color']))),
+                blocks=True, fighter=fighter_component, ai=ai_component)
             objects.append(monster)
- 
+
     #choose random number of items
     num_items = libtcod.random_get_int(0, 0, max_items)
  
@@ -1424,10 +1413,14 @@ def race_menu():
     new_game()
     play_game()
 
-libtcod.console_set_custom_font('./media/arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
-libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Crunchbang Project', False)
-libtcod.sys_set_fps(LIMIT_FPS)
-con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
-panel = libtcod.console_new(SCREEN_WIDTH, PANEL_HEIGHT)
- 
-main_menu()
+if __name__ == '__main__':
+    libtcod.console_set_custom_font('./media/arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
+    libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Crunchbang Project', False)
+    libtcod.sys_set_fps(LIMIT_FPS)
+    con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
+    panel = libtcod.console_new(SCREEN_WIDTH, PANEL_HEIGHT)
+
+    config = ConfigParser.ConfigParser()
+    config.read('dungeons.conf')
+
+    main_menu()

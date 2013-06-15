@@ -855,7 +855,7 @@ def menu(header, options, width):
     #blit the contents of "window" to the root console
     x = SCREEN_WIDTH/2 - width/2
     y = SCREEN_HEIGHT/2 - height/2
-    libtcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
+    libtcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 1.0)
  
     #present the root console to the player and wait for a key-press
     libtcod.console_flush()
@@ -901,7 +901,7 @@ def inventory_find(itemname):
      
 def msgbox(text, width=50):
     menu(text, [], width)  #use menu() as a sort of "message box"
- 
+
 def story():
     global race
     if race == 'Human':

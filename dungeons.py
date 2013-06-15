@@ -85,13 +85,17 @@ TARGET_MESSAGE = 'Target an enemy for %s with the mouse or keypad.'
  
 color_dark_wall = libtcod.Color(130, 110, 50) * libtcod.dark_grey * 0.4
 color_dark_wall2 = libtcod.light_orange * libtcod.dark_grey * 0.2
+color_dark_wall3 = libtcod.chartreuse * libtcod.dark_grey * 0.2
 color_light_wall = libtcod.Color(130, 110, 50)
 color_light_wall2 = libtcod.light_orange * 0.3
+color_light_wall3 = libtcod.light_chartreuse * 0.3
 
 color_dark_ground = libtcod.Color(200, 180, 50) * libtcod.dark_grey * 0.5
 color_dark_ground2 = libtcod.orange * 0.4
+color_dark_ground3 = libtcod.chartreuse * 0.4
 color_light_ground = libtcod.Color(200, 180, 50)
 color_light_ground2 = libtcod.orange * 0.9
+color_light_ground3 = libtcod.chartreuse * 0.9
  
 class Tile:
     #a tile of the map and its properties
@@ -735,23 +739,43 @@ def render_all():
                     #if it's not visible right now, the player can only see it if it's explored
                     if map[x][y].explored:
                         if wall and dungeon_level % 2 == 0:
-                            libtcod.console_set_char_background(con, x, y, color_dark_wall, libtcod.BKGND_SET)
+                            libtcod.console_set_char_background(
+                            con, x, y, color_dark_wall, libtcod.BKGND_SET)
+                        elif wall and dungeon_level % 3 == 0:
+                        	libtcod.console_set_char_background(
+                        	con, x, y, color_dark_wall3, libtcod.BKGND_SET)
                         elif wall:
-                            libtcod.console_set_char_background(con, x, y, color_dark_wall2, libtcod.BKGND_SET)
-                        elif dungeon_level % 2 ==0:
-                            libtcod.console_set_char_background(con, x, y, color_dark_ground, libtcod.BKGND_SET)
+                            libtcod.console_set_char_background(
+                            con, x, y, color_dark_wall2, libtcod.BKGND_SET)
+                        elif dungeon_level % 2 == 0:
+                            libtcod.console_set_char_background(
+                            con, x, y, color_dark_ground, libtcod.BKGND_SET)
+                        elif dungeon_level % 3 == 0:
+                        	libtcod.console_set_char_background(
+                        	con, x, y, color_dark_ground3, libtcod.BKGND_SET)
                         else:
-                            libtcod.console_set_char_background(con, x, y, color_dark_ground2, libtcod.BKGND_SET)
+                            libtcod.console_set_char_background(
+                            con, x, y, color_dark_ground2, libtcod.BKGND_SET)
                 else:
                     #it's visible
                     if wall and dungeon_level % 2 == 0:
-                        libtcod.console_set_char_background(con, x, y, color_light_wall, libtcod.BKGND_SET )
+                        libtcod.console_set_char_background(
+                        con, x, y, color_light_wall, libtcod.BKGND_SET )
+                    elif wall and dungeon_level % 3 == 0:
+                    	libtcod.console_set_char_background(
+                    	con, x, y, color_light_wall3, libtcod.BKGND_SET )
                     elif wall:
-                        libtcod.console_set_char_background(con, x, y, color_light_wall2, libtcod.BKGND_SET )
+                        libtcod.console_set_char_background(
+                        con, x, y, color_light_wall2, libtcod.BKGND_SET )
                     elif dungeon_level % 2 == 0:
-                        libtcod.console_set_char_background(con, x, y, color_light_ground, libtcod.BKGND_SET )
+                        libtcod.console_set_char_background(
+                        con, x, y, color_light_ground, libtcod.BKGND_SET )
+                    elif dungeon_level % 3 == 0:
+                    	libtcod.console_set_char_background(
+                    	con, x, y, color_light_ground3, libtcod.BKGND_SET )
                     else:
-                        libtcod.console_set_char_background(con, x, y, color_light_ground2, libtcod.BKGND_SET )
+                        libtcod.console_set_char_background(
+                        con, x, y, color_light_ground2, libtcod.BKGND_SET )
                         #since it's visible, explore it
                     map[x][y].explored = True
  

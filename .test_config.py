@@ -86,10 +86,33 @@ def is_list(dic, key):
     global has_errors
     if has_key(dic, key):
         try:
-            json.loads(dic[key])
-        except ValueError:
+            value = json.loads(dic[key])
+            if not type(value) is list:
+                raise Exception('not a list type')
+        except Exception, e:
             has_errors = True
             print(yellow + '\t\t"' + key + '" invalid' + reset)
+
+def is_list_of_list(dic, key):
+    """
+    Test if the key value in dictionary is a list.
+    """
+    
+    global has_errors
+    if has_key(dic, key):
+        try:
+            value = json.loads(dic[key])
+            if not type(value) is list:
+                raise Exception('not a list type')
+            if len(value) == 0:
+                raise Exception('empty list')
+            if not type(value[0]) is list:
+                raise Exception('must be a list of lists')
+            if len(value[0]) < 2:
+                raise Exception('need at least two values in the list')
+        except Exception, e:
+            has_errors = True
+            print(yellow + '\t\t"' + key + '" invalid - ' + str(e) + reset)
 
 if __name__ == '__main__':
     config = ConfigParser.ConfigParser()
@@ -106,7 +129,7 @@ if __name__ == '__main__':
 
         # TEST MONSTER HERE
         is_string(monster, 'char')
-        is_list(monster, 'chance')
+        is_list_of_list(monster, 'chance')
         is_list(monster, 'color')
         is_numeric(monster, 'hp')
         is_numeric(monster, 'defense')
@@ -120,7 +143,7 @@ if __name__ == '__main__':
         print('* testing %s...' % item_name)
         
         # TEST ITEM HERE
-        is_list(item, 'chance')
+        is_list_of_list(item, 'chance')
     
     if has_errors:
         print(red + '\nUnit test failed :(' + reset)

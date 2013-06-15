@@ -575,7 +575,10 @@ def place_objects(room):
     for item_name in config.get('lists', 'item list').split(', '):
         chance_table = json.loads(config.get(item_name, 'chance'))
         item_chances[item_name] = from_dungeon_level(chance_table)
- 
+
+    # remember unique monsters
+    uniques = []
+
     #choose random number of monsters
     num_monsters = libtcod.random_get_int(0, 0, max_monsters)
  
@@ -594,8 +597,11 @@ def place_objects(room):
             
             # do not create multiple unique monsters
             if monster['unique'] == 'True':
-                continue
-                
+                if choice in uniques:
+                    continue
+                else:
+                    uniques.append(choice)
+            
             # build the monster components
             fighter_component = Fighter(
                 hp=int(monster['hp']),

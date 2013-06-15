@@ -561,8 +561,9 @@ def place_objects(room):
  
     #chance of each monster
     monster_chances = {}
-    for monster in config.get('lists', 'monster list').split(', '):
-        monster_chances[monster] = from_dungeon_level(json.loads(config.get(monster, 'chance')))
+    for monster_name in config.get('lists', 'monster list').split(', '):
+        chance_table = json.loads(config.get(monster_name, 'chance'))
+        monster_chances[monster_name] = from_dungeon_level(chance_table)
 
     global killerrabbit_created #this variable is used to make sure we only have one killerrabbit
     
@@ -571,14 +572,9 @@ def place_objects(room):
  
     #chance of each item (by default they have a chance of 0 at level 1, which then goes up)
     item_chances = {}
-    item_chances['heal'] = 35  #healing potion always shows up, even if all other items have 0 chance
-    item_chances['lightning'] = from_dungeon_level([[25, 4]])
-    item_chances['fireball'] =  from_dungeon_level([[25, 6]])
-    item_chances['confuse'] =   from_dungeon_level([[10, 2]])
-    item_chances['sword'] =     from_dungeon_level([[5, 4]])
-    item_chances['shield'] =    from_dungeon_level([[15, 8]])
-    item_chances['cloak'] =     from_dungeon_level([[5, 2]])
- 
+    for item_name in config.get('lists', 'item list').split(', '):
+        chance_table = json.loads(config.get(item_name, 'chance'))
+        item_chances[item_name] = from_dungeon_level(chance_table)
  
     #choose random number of monsters
     num_monsters = libtcod.random_get_int(0, 0, max_monsters)

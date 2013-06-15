@@ -991,7 +991,7 @@ def handle_keys():
             #test for other keys
             key_char = chr(key.c)
  
-            if key_char == 'g':
+            if key_char == ',':
                 #pick up an item
                 for object in objects:  #look for an item in the player's tile
                     if object.x == player.x and object.y == player.y and object.item:
@@ -1021,7 +1021,7 @@ def handle_keys():
                        '\nAttack: ' + str(player.fighter.power) + '\nDefense: ' + str(player.fighter.defense) +
                        '\n\n' + str(equipped_list), CHARACTER_SCREEN_WIDTH)
 
-            if key_char == 'h':
+            if key_char == '?':
                 msgbox('The ARROW keys move you around\n' +
                        'Press "g" to GET items\n' + 'Press "<" to go down stairs\n' + 'Press "c" for Character information\n' +
                        'Press "i" for your INVENTORY\nPress "d" to DROP an item\nPress "s" for the STORY\nPress "esc" to exit\n' + 
@@ -1039,6 +1039,20 @@ def handle_keys():
                 #go down stairs, if the player is on them
                 if stairs.x == player.x and stairs.y == player.y:
                     next_level()
+
+            #vim movement keys
+            if key_char == 'h':
+                player_move_or_attack(1, 0)
+            elif key_char == 'j':
+                player_move_or_attack(0, -1)
+            elif key_char == 'k':
+                player_move_or_attack(0, 1)
+            elif key_char == 'l':
+                player_move_or_attack(1, 0)
+            # the period key (".") makes the player wait one turn.
+            elif key_char == '.':
+                pass
+
  
             return 'didnt-take-turn'
 

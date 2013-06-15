@@ -1,11 +1,7 @@
 #!/usr/bin/python
 
-# This unit test will validate the dungeons.conf for syntax errors,
-# invalid numbers and missing function names.
-#
-# It is recommended to run it before commiting any config changes:
-#
-# python .test_config.py
+# This tests dungeons.conf for syntax errors, 
+# valid numbers and existing function & class names.
 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -27,76 +23,107 @@ import random
 import ConfigParser
 import dungeons
 
-def is_numeric(value):
-    try:
-        int(value)
-    except ValueError:
-        return False
-    return True
+red = "\033[1;31m"
+green = "\033[1;32m"
+yellow = "\033[1;33m"
+reset = "\033[1;m"
+has_errors = False
 
-def has_attrib(target, name):
-    try:
-        # if not name given we assume none was intended
-        if len(name) > 1:
-            getattr(target, name)
-    except AttributeError:
+def has_key(dic, key):
+    """
+    Do not call this directly.
+    """
+
+    if key in dic.keys():
+        return True
+    else:
+        print(yellow + '\t\t"' + key + '" is not defined' + reset)
         return False
-    return True
+
+def is_string(dic, key):
+    """
+    Test if the key exists in dictionary.
+    """
+    
+    global has_errors
+    if not has_key(dic, key):
+        has_errors = True
+
+def is_numeric(dic, key):
+    """
+    Test if the key value in dictionary is a number.
+    """
+    
+    global has_errors
+    if has_key(dic, key):
+        try:
+            int(dic[key])
+        except ValueError:
+            has_errors = True
+            print(yellow + '\t\t"' + key + '" is not numeric' + reset)
+
+def has_attrib(target, dic, key):
+    """
+    Test if the key value in dictionary is a Class or Function in dungeons.py.
+    """
+    
+    global has_errors
+    if has_key(dic, key):
+        try:
+            # ignore blank entries
+            name = dic[key]
+            if len(name) > 1:
+                getattr(target, name)
+        except AttributeError:
+            has_errors = True
+            print(yellow + '\t\t"' + dic[key] + '" not a valid function or class' + reset)
+
+def is_list(dic, key):
+    """
+    Test if the key value in dictionary is a list.
+    """
+    
+    global has_errors
+    if has_key(dic, key):
+        try:
+            json.loads(dic[key])
+        except ValueError:
+            has_errors = True
+            print(yellow + '\t\t"' + key + '" invalid' + reset)
 
 if __name__ == '__main__':
-    red = "\033[1;31m"
-    green = "\033[1;32m"
-    reset = "\033[1;m"
-    print('\n# dungeons.conf unit test')
-    print(random.choice(("analyzing air quality...",
-        "calculating primordial soup...",
-        "reading the future...",
-        "carbon dating your hard drive...",
-        "finding prime numbers...")))
-    
     config = ConfigParser.ConfigParser()
-    has_errors = False
-    
     try:
-        print('Loading dungeons.conf...')
+        print('\nChecking dungeons.conf')
         config.read('dungeons.conf')
     except Exception, e:
         print(red + str(e) + reset)
         sys.exit(1)
     
     for monster_name in config.get('lists', 'monster list').split(', '):
-    
-        # load this monster
         monster = dict(config.items(monster_name))
+        print('* testing %s...' % monster_name)
+
+        # TEST MONSTER HERE
+        is_string(monster, 'char')
+        is_list(monster, 'chance')
+        is_list(monster, 'color')
+        is_numeric(monster, 'hp')
+        is_numeric(monster, 'defense')
+        is_numeric(monster, 'power')
+        is_numeric(monster, 'xp')
+        has_attrib(dungeons, monster, 'death_function')
+        has_attrib(dungeons, monster, 'ai_component')
+    
+    for item_name in config.get('lists', 'item list').split(', '):
+        item = dict(config.items(item_name))
+        print('* testing %s...' % item_name)
         
-        print('\tTesting: %s...' % monster_name)
-        
-        try:
-            json.loads(monster['chance'])
-        except ValueError, e:
-            has_errors = True
-            print(red + '\t\tchance invalid' + reset)
-        
-        if not is_numeric(monster['hp']):
-            has_errors = True
-            print(red + '\t\thp is not numeric' + reset)
-        if not is_numeric(monster['defense']):
-            has_errors = True
-            print(red + '\t\tdefense is not numeric' + reset)
-        if not is_numeric(monster['power']):
-            has_errors = True
-            print(red + '\t\tpower is not numeric' + reset)
-        if not is_numeric(monster['xp']):
-            has_errors = True
-            print(red + '\t\txp is not numeric' + reset)
-        
-        if not has_attrib(dungeons, monster['death_function']):
-            has_errors = True
-            print(red + '\t\tdeath_function invalid' + reset)
-        if not has_attrib(dungeons, monster['ai_component']):
-            has_errors = True
-            print(red + '\t\tai_component invalid' + reset)
+        # TEST ITEM HERE
+        is_list(item, 'chance')
+    
     if has_errors:
-        print(red + 'Unit test failed' + reset)
+        print(red + '\nUnit test failed :(' + reset)
     else:
-        print(green + 'All systems go' + reset)
+        print(green + '\n' + random.choice(("all systems go :)",
+            "ready to rock \'n roll :)", "all tests passed :)")) + reset)

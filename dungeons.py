@@ -243,7 +243,6 @@ class Fighter:
             message(self.owner.name.capitalize() + ' attacks ' + target.name + ' but it has no effect!')
  
     def take_damage(self, damage, attacker):
-        global killerrabbit_death
         #apply damage if possible
         if damage > 0:
             self.hp -= damage
@@ -564,9 +563,9 @@ def roll_hit_die(hitdie):
     x indicates the number of times that a die (d) with y sides is 
     thrown. For example 2d6 means rolling 2 six sided dices.
     Arguments
-		hitdie - a string in hitdie format
-	Returns
-		integer number of hitpoints
+        hitdie - a string in hitdie format
+    Returns
+        integer number of hitpoints
     """
     #interpret the hitdie string
     d_index = hitdie.lower().index('d')
@@ -591,8 +590,6 @@ def place_objects(room):
     for monster_name in config.get('lists', 'monster list').split(', '):
         chance_table = json.loads(config.get(monster_name, 'chance'))
         monster_chances[monster_name] = from_dungeon_level(chance_table)
-
-    global killerrabbit_created #this variable is used to make sure we only have one killerrabbit
     
     #maximum number of items per room
     max_items = from_dungeon_level([[1, 1], [2, 4]])
@@ -603,9 +600,9 @@ def place_objects(room):
         chance_table = json.loads(config.get(item_name, 'chance'))
         item_chances[item_name] = from_dungeon_level(chance_table)
 
-    # remember unique monsters
-    uniques = []
-
+    #reference unique monster list to make sure unique monsters exist only once
+    global unique_monsters
+    
     #choose random number of monsters
     num_monsters = libtcod.random_get_int(0, 0, max_monsters)
  
@@ -624,10 +621,11 @@ def place_objects(room):
             
             # do not create multiple unique monsters
             if monster['unique'] == 'True':
-                if choice in uniques:
+                if choice in unique_monsters:
+                    #This unique was already created, do nothing
                     continue
                 else:
-                    uniques.append(choice)
+                    unique_monsters.append(choice)
             
             # build the monster components
             fighter_component = Fighter(
@@ -1081,12 +1079,14 @@ def check_level_up():
             player.fighter.base_defense += 1
  
 def player_death(player,attacker):
+	#Frost#
+	#add kill text here
+	#Frost#
+	
     message('Player is killed by ' + attacker.owner.name.capitalize() + '.')
     global killerrabbit_death
     if attacker.owner.name == 'killerrabbit':
         killerrabbit_death = True
-        message('Death Awaits You All With Nasty Big Pointy Teeth!', libtcod.red)
-        message('Beware the Killerrabbit!', libtcod.red)
 
     #End the game
     global game_state
@@ -1257,14 +1257,17 @@ def save_game():
     file['game_state'] = game_state
     file['dungeon_level'] = dungeon_level
     file['race'] = race
-    file['events'] = [killerrabbit_created, killerrabbit_death]
+    file['unique_monsters'] = unique_monsters
     file.close()
  
 def load_game():
     #open the previously saved shelve and load the game data
-    global map, objects, player, stairs, inventory, game_msgs, game_state, dungeon_level, race
-    global killerrabbit_created, killerrabbit_death 
+    global map, objects, player, stairs, inventory, game_msgs, game_state, dungeon_level, race, unique_monsters
        
+    #Frost# Need to get rid of this later
+    global killerrabbit_death
+    killerrabbit_death = False
+    
     file = shelve.open('savegame', 'r')
     map = file['map']
     objects = file['objects']
@@ -1275,20 +1278,21 @@ def load_game():
     game_state = file['game_state']
     dungeon_level = file['dungeon_level']
     race = file['race']
-    killerrabbit_created, killerrabbit_death = file['events']
+    unique_monsters = file['unique_monsters']
     file.close()
  
     initialize_fov()
  
 def new_game():
-    global player, inventory, game_msgs, game_state, dungeon_level, key, race
-
     global player, inventory, game_msgs, game_state, dungeon_level
-    global killerrabbit_created, killerrabbit_death 
+    global key, race, unique_monsters
     
-    #Reset important events
-    killerrabbit_created = False
+    #Frost# Need to get rid of this later
+    global killerrabbit_death
     killerrabbit_death = False
+    
+    #Reset list of unique monsters
+    unique_monsters = []
  
     #create object representing the player
     if race == 'Dwarf':

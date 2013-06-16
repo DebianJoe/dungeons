@@ -948,7 +948,7 @@ def story():
                'the Necromancer Malfuriul the Vast One.\n\n' +
                'You pick up your trusty dagger '+
                'vowing to recover the amulet of the flying circus\n' +
-               '...and return your people to thier former glory.')
+               '...and return your people to their former glory.')
 
     elif race == 'Dwarf':
         msgbox('The UNDERDEEP, once home to the dwarvish people '+
@@ -1042,16 +1042,16 @@ def handle_keys():
 
             #vim movement keys
             if key_char == 'h':
-                player_move_or_attack(1, 0)
+                player_move_or_attack(-1, 0)
             elif key_char == 'j':
-                player_move_or_attack(0, -1)
-            elif key_char == 'k':
                 player_move_or_attack(0, 1)
+            elif key_char == 'k':
+                player_move_or_attack(0, -1)
             elif key_char == 'l':
                 player_move_or_attack(1, 0)
             # the period key (".") makes the player wait one turn.
             elif key_char == '.':
-                pass
+                player_move_or_attack(0, 0)
 
  
             return 'didnt-take-turn'

@@ -69,27 +69,19 @@ If you skipped part 1, make sure you do step 3 to get the prerequired library li
 
 Go to [GitHub.com](https://github.com), register an account.
 
-Git is pre-installed on crunchbang but you need to configure it to use your newly created account, [steps are detailed here](https://help.github.com/articles/set-up-git](https://help.github.com/articles/set-up-git).
+Git is pre-installed on crunchbang but you need to configure it to use your newly created account, [steps are detailed here](https://help.github.com/articles/set-up-git).
+
+You can now optionally [setup ssh keys with your GitHub account](https://help.github.com/articles/generating-ssh-keys). This is not required, but has the effect that pushing your changes does not password prompt you, as your keys authenticate you.
 
 5.2 Fork DebianJoes repository
 ------------------------------
 
-Next step is to create your own copy of the dungeons code, this is called a "fork", [steps are detailed here](https://help.github.com/articles/fork-a-repo).
+[Read these instructions on forking](https://help.github.com/articles/fork-a-repo), then navigate to the [Dungeons page](https://github.com/DebianJoe/dungeons) and perform the steps you just read about, keeping in mind:
 
-I'll provide a bit more detail on how to apply it to the dungeons project. Note that all the git commands below have to be executed in the dugeons directory.
+* the <username> mentioned is your GitHub user
+* the remote mentioned is https://github.com/DebianJoe/dungeons.git, or if you setup ssh keys use git@github.com:DebianJoe/dungeons.git
 
-In short this is what should be done, replace <USERNAME> with your GitHub username!
-
-On the github website: Log in and navigate to DebianJoes repository, click on the button fork (top right hand corner of main page). This will create a copy of the code (a fork) in your github account.
-
-To download the code to your machine (this will create a subdirectory dungeons):
-
-    git clone git@github.com:<USERNAME>/dungeons.git
-
-Create upstream link to DebianJoes repository, you need this to be able to move your changes upstream back to DebianJoes master repository:
-
-    cd dungeons
-    git remote add upstream https://github.com/DebianJoe/dungeons.git
+The code now lives on your PC as per the forking link.
 
 5.3 Make changes and upload them
 --------------------------------

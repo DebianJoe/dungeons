@@ -556,7 +556,30 @@ def from_dungeon_level(table):
         if dungeon_level >= level:
             return value
     return 0
- 
+
+def roll_hit_die(hitdie):
+    """
+    this function simulates rolling hit dies and returns the resulting 
+    nbr of hitpoints. Hit dies are specified in the format xdy where
+    x indicates the number of times that a die (d) with y sides is 
+    thrown. For example 2d6 means rolling 2 six sided dices.
+    Arguments
+		hitdie - a string in hitdie format
+	Returns
+		integer number of hitpoints
+    """
+    #interpret the hitdie string
+    d_index = hitdie.lower().index('d')
+    nbr_of_rolls = int(hitdie[0:d_index])
+    dice_size = int(hitdie[d_index + 1:])
+    #roll the dice
+    role_count = 0
+    hitpoints = 0
+    while role_count <= nbr_of_rolls:
+        role_count += 1
+        hitpoints += libtcod.random_get_int(0, 1, dice_size)
+    return hitpoints
+
 def place_objects(room):
     #this is where we decide the chance of each monster or item appearing.
  
@@ -608,7 +631,7 @@ def place_objects(room):
             
             # build the monster components
             fighter_component = Fighter(
-                hp=int(monster['hp']),
+                hp=roll_hit_die(monster['hitdie']),
                 defense=int(monster['defense']),
                 power=int(monster['power']),
                 xp=int(monster['xp']),
@@ -731,8 +754,8 @@ def render_all():
                             libtcod.console_set_char_background(
                             con, x, y, color_dark_wall, libtcod.BKGND_SET)
                         elif wall and dungeon_level % 3 == 0:
-                        	libtcod.console_set_char_background(
-                        	con, x, y, color_dark_wall3, libtcod.BKGND_SET)
+                            libtcod.console_set_char_background(
+                            con, x, y, color_dark_wall3, libtcod.BKGND_SET)
                         elif wall:
                             libtcod.console_set_char_background(
                             con, x, y, color_dark_wall2, libtcod.BKGND_SET)
@@ -740,8 +763,8 @@ def render_all():
                             libtcod.console_set_char_background(
                             con, x, y, color_dark_ground, libtcod.BKGND_SET)
                         elif dungeon_level % 3 == 0:
-                        	libtcod.console_set_char_background(
-                        	con, x, y, color_dark_ground3, libtcod.BKGND_SET)
+                            libtcod.console_set_char_background(
+                            con, x, y, color_dark_ground3, libtcod.BKGND_SET)
                         else:
                             libtcod.console_set_char_background(
                             con, x, y, color_dark_ground2, libtcod.BKGND_SET)
@@ -751,8 +774,8 @@ def render_all():
                         libtcod.console_set_char_background(
                         con, x, y, color_light_wall, libtcod.BKGND_SET )
                     elif wall and dungeon_level % 3 == 0:
-                    	libtcod.console_set_char_background(
-                    	con, x, y, color_light_wall3, libtcod.BKGND_SET )
+                        libtcod.console_set_char_background(
+                        con, x, y, color_light_wall3, libtcod.BKGND_SET )
                     elif wall:
                         libtcod.console_set_char_background(
                         con, x, y, color_light_wall2, libtcod.BKGND_SET )
@@ -760,8 +783,8 @@ def render_all():
                         libtcod.console_set_char_background(
                         con, x, y, color_light_ground, libtcod.BKGND_SET )
                     elif dungeon_level % 3 == 0:
-                    	libtcod.console_set_char_background(
-                    	con, x, y, color_light_ground3, libtcod.BKGND_SET )
+                        libtcod.console_set_char_background(
+                        con, x, y, color_light_ground3, libtcod.BKGND_SET )
                     else:
                         libtcod.console_set_char_background(
                         con, x, y, color_light_ground2, libtcod.BKGND_SET )

@@ -62,6 +62,25 @@ def is_numeric(dic, key):
             has_errors = True
             print(yellow + '\t\t"' + key + '" is not numeric' + reset)
 
+def is_hitdie(dic, key):
+    """
+    Test if the key value in dictionary is a hitdie.
+    """
+    
+    global has_errors
+    if has_key(dic, key):
+        try:
+            hitdie = str(dic[key])
+            d_index = hitdie.lower().index('d')
+            #test if both components of hitdie are numeric
+            int(hitdie[0:d_index])
+            int(hitdie[d_index + 1:])
+        except ValueError:
+            has_errors = True
+            print(yellow + '\t\t"' + key + '" is not numeric' + reset)
+            print(yellow + '\t' + "Valid hitdies consist of two integers" + reset)
+            print(yellow + '\t' + "separated by a letter d" + reset)
+            
 def has_attrib(target, dic, key):
     """
     Test if the key value in dictionary is a Class or Function in dungeons.py.
@@ -131,7 +150,7 @@ if __name__ == '__main__':
         is_string(monster, 'char')
         is_list_of_list(monster, 'chance')
         is_list(monster, 'color')
-        is_numeric(monster, 'hp')
+        is_hitdie(monster, 'hitdie')
         is_numeric(monster, 'defense')
         is_numeric(monster, 'power')
         is_numeric(monster, 'xp')

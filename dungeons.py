@@ -731,8 +731,8 @@ def render_all():
                             libtcod.console_set_char_background(
                             con, x, y, color_dark_wall, libtcod.BKGND_SET)
                         elif wall and dungeon_level % 3 == 0:
-                        	libtcod.console_set_char_background(
-                        	con, x, y, color_dark_wall3, libtcod.BKGND_SET)
+                            libtcod.console_set_char_background(
+                            con, x, y, color_dark_wall3, libtcod.BKGND_SET)
                         elif wall:
                             libtcod.console_set_char_background(
                             con, x, y, color_dark_wall2, libtcod.BKGND_SET)
@@ -740,8 +740,8 @@ def render_all():
                             libtcod.console_set_char_background(
                             con, x, y, color_dark_ground, libtcod.BKGND_SET)
                         elif dungeon_level % 3 == 0:
-                        	libtcod.console_set_char_background(
-                        	con, x, y, color_dark_ground3, libtcod.BKGND_SET)
+                            libtcod.console_set_char_background(
+                            con, x, y, color_dark_ground3, libtcod.BKGND_SET)
                         else:
                             libtcod.console_set_char_background(
                             con, x, y, color_dark_ground2, libtcod.BKGND_SET)
@@ -751,8 +751,8 @@ def render_all():
                         libtcod.console_set_char_background(
                         con, x, y, color_light_wall, libtcod.BKGND_SET )
                     elif wall and dungeon_level % 3 == 0:
-                    	libtcod.console_set_char_background(
-                    	con, x, y, color_light_wall3, libtcod.BKGND_SET )
+                        libtcod.console_set_char_background(
+                        con, x, y, color_light_wall3, libtcod.BKGND_SET )
                     elif wall:
                         libtcod.console_set_char_background(
                         con, x, y, color_light_wall2, libtcod.BKGND_SET )
@@ -760,8 +760,8 @@ def render_all():
                         libtcod.console_set_char_background(
                         con, x, y, color_light_ground, libtcod.BKGND_SET )
                     elif dungeon_level % 3 == 0:
-                    	libtcod.console_set_char_background(
-                    	con, x, y, color_light_ground3, libtcod.BKGND_SET )
+                        libtcod.console_set_char_background(
+                        con, x, y, color_light_ground3, libtcod.BKGND_SET )
                     else:
                         libtcod.console_set_char_background(
                         con, x, y, color_light_ground2, libtcod.BKGND_SET )
@@ -987,6 +987,14 @@ def handle_keys():
             player_move_or_attack(0, -1)
         elif key_char == 'l':
             player_move_or_attack(1, 0)
+        elif key_char == 'y':
+            player_move_or_attack(-1, -1)
+        elif key_char == 'u':
+            player_move_or_attack(1, -1)
+        elif key_char == 'b':
+            player_move_or_attack(-1, 1)
+        elif key_char == 'n':
+            player_move_or_attack(1, 1)
             # the period key (".") makes the player wait one turn.
         elif key_char == '.':
             player_move_or_attack(0, 0)
@@ -1146,15 +1154,29 @@ def target_tile(max_range=None):
                     libtcod.KEY_KP9: (+1, -1),
                     libtcod.KEY_KP1: (-1, +1),
                     libtcod.KEY_KP3: (+1, +1),
+                    'h': (-1, +0),
+                    'l': (+1, +0),
+                    'j': (+0, +1),
+                    'k': (+0, -1),
+                    'y': (-1, -1),
+                    'u': (+1, -1),
+                    'b': (-1, +1),
+                    'n': (+1, +1),
                     }
-
+        
+        direction = None
         if key.vk in target_keys.keys():
+            direction = target_keys[key.vk]
+        elif chr(key.c) in target_keys:
+            direction = target_keys[chr(key.c)]
+        
+        if direction:
             # replace the previous background
             libtcod.console_set_char_background(con, target_x, target_y,
                                             target_col, flag=libtcod.BKGND_SET)
             # move the reticule: adjust current position by target_keys offset
-            target_x += target_keys[key.vk][0]
-            target_y += target_keys[key.vk][1]
+            target_x += direction[0]
+            target_y += direction[1]
             # get the new background
             target_col = libtcod.console_get_char_background(con, 
                                                     target_x, target_y)

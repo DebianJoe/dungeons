@@ -1221,7 +1221,52 @@ def cast_confuse():
     monster.ai = ConfusedMonster(old_ai)
     monster.ai.owner = monster  #tell the new component who owns it
     message('The eyes of the ' + monster.name + ' look vacant, as he starts to stumble around!', libtcod.light_green)
+
+def recall_from_dungeon():
+    global map, objects, player, stairs, inventory, game_msgs, game_state, dungeon_level, race
+    global killerrabbit_created, killerrabbit_death 
+    #uses file "current" as a temp storage for the current level.
+    file = shelve.open('current', 'n')
+    file['map'] = map
+    file['objects'] = objects
+    file['player_index'] = objects.index(player)
+    file['stairs_index'] = objects.index(stairs)
+    file['inventory'] = inventory
+    file['game_msgs'] = game_msgs
+    file['game_state'] = game_state
+    file['dungeon_level'] = game_state
+    file['race'] = race
+    file['events'] = [killerrabbit_created, killerrabbit_death]
+    file.close()
+
+def leave_town():
+    global inventory
+    #saves inventory to "current" before reopening all previous dungeon states
+    file = shelve.open('current', 'n')
+    file['inventory'] = inventory
+    file['game_msgs'] = game_msgs
+    file.close()
+
+def back_to_dungeon():
+    #open the previously saved shelve and load the game data
+    global map, objects, player, stairs, inventory, game_msgs, game_state, dungeon_level, race
+    global killerrabbit_created, killerrabbit_death 
+       
+    file = shelve.open('current', 'r')
+    map = file['map']
+    objects = file['objects']
+    player = objects[file['player_index']]  #get index of player in objects list and access it
+    stairs = objects[file['stairs_index']]  #same for the stairs
+    inventory = file['inventory']
+    game_msgs = file['game_msgs']
+    game_state = file['game_state']
+    dungeon_level = file['dungeon_level']
+    race = file['race']
+    killerrabbit_created, killerrabbit_death = file['events']
+    file.close()
  
+    initialize_fov()
+
 def save_game():
     #open a new empty shelve (possibly overwriting an old one) to write the game data
     file = shelve.open('savegame', 'n')

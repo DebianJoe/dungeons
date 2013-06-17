@@ -1027,8 +1027,8 @@ def handle_keys():
                        '\n\n' + str(equipped_list), CHARACTER_SCREEN_WIDTH)
 
             if key_char == '?':
-                msgbox('The ARROW keys move you around\n' +
-                       'Press "g" to GET items\n' + 'Press "<" to go down stairs\n' + 'Press "c" for Character information\n' +
+                msgbox('The ARROW keys move you around\n or use VIM-like bindings\n' +
+                       'Press "g or ," to GET items\n' + 'Press "<" to go down stairs\n' + 'Press "c" for Character information\n' +
                        'Press "i" for your INVENTORY\nPress "d" to DROP an item\nPress "s" for the STORY\nPress "esc" to exit\n' + 
                        'Press "Alt+Enter" for fullscreen\nPress "?" to see this screen at any time' +
                        '\n\nTarget enemies with the mouse or keypad.' +

@@ -70,6 +70,7 @@ CONFUSE_RANGE = 8
 CONFUSE_NUM_TURNS = 10
 FIREBALL_RADIUS = 3
 FIREBALL_DAMAGE = 25
+GRENADE_DAMAGE = 9000
  
 #experience and level-ups
 LEVEL_UP_BASE = 200
@@ -243,7 +244,11 @@ class Fighter:
             message(self.owner.name.capitalize() + ' attacks ' + target.name + ' but it has no effect!')
  
     def take_damage(self, damage, attacker):
-        global killerrabbit_death
+        global killerrabbit_death, wearing_amulet
+        # are we immune from rabbits?
+        if attacker.owner.name == 'killerrabbit' and wearing_amulet:
+            message('The Amulet of the Flying Circus protects you!')
+            return
         #apply damage if possible
         if damage > 0:
             self.hp -= damage
@@ -388,6 +393,7 @@ class Equipment:
             self.equip()
  
     def equip(self):
+        global wearing_amulet
         #if the slot is already being used, dequip whatever is there first
         old_equipment = get_equipped_in_slot(self.slot)
         if old_equipment is not None:
@@ -396,13 +402,17 @@ class Equipment:
         #equip object and show a message about it
         self.is_equipped = True
         message('Equipped ' + self.owner.name + ' on ' + self.slot + '.', libtcod.light_green)
+        if self.owner.name == 'Amulet of the Flying Circus':
+            wearing_amulet = True
  
     def dequip(self):
+        global wearing_amulet
         #dequip object and show a message about it
         if not self.is_equipped: return
         self.is_equipped = False
         message('Dequipped ' + self.owner.name + ' from ' + self.slot + '.', libtcod.light_yellow)
- 
+        if self.owner.name == 'Amulet of the Flying Circus':
+            wearing_amulet = False
  
 def get_equipped_in_slot(slot):  #returns the equipment in a slot, or None if it's empty
     for obj in inventory:
@@ -581,7 +591,7 @@ def place_objects(room):
         item_chances[item_name] = from_dungeon_level(chance_table)
 
     # remember unique monsters
-    uniques = []
+    uniques = [obj.name for obj in objects]
 
     #choose random number of monsters
     num_monsters = libtcod.random_get_int(0, 0, max_monsters)
@@ -671,6 +681,16 @@ def place_objects(room):
                 #create a cloak
                 equipment_component = Equipment(slot='back', max_hp_bonus=10)
                 item = Object(x, y, ')', 'cloak', libtcod.darker_green, equipment=equipment_component)
+            
+            elif choice == 'holy hand grenade':
+                #create a holy hand grenade
+                item_component = Item(use_function=cast_grenade, stackable=False)
+                item = Object(x, y, 'O', 'Holy Hand Grenade', libtcod.darkest_grey, item=item_component)
+            
+            elif choice == 'Amulet of the flying circus':
+                #create an Amulet of the flying circus
+                equipment_component = Equipment(slot='neck', max_hp_bonus=0)
+                item = Object(x, y, '"', 'Amulet of the Flying Circus', libtcod.darker_amber, equipment=equipment_component)
             
             objects.append(item)
             item.send_to_back()  #items appear below other objects
@@ -949,7 +969,7 @@ def story():
                'cleanse the evil from your ancestral home.')
 
 def handle_keys():
-    global key, race
+    global key, race, wearing_amulet
  
     if key.vk == libtcod.KEY_ENTER and key.lalt:
         #Alt+Enter: toggle fullscreen
@@ -1009,6 +1029,8 @@ def handle_keys():
                 for object in objects:  #look for an item in the player's tile
                     if object.x == player.x and object.y == player.y and object.item:
                         object.item.pick_up()
+                        if object.name == 'Amulet of the Flying Circus':
+                            wearing_amulet = True
                         break
  
             if key_char == 'i':
@@ -1246,6 +1268,20 @@ def cast_fireball():
             message('The ' + obj.name + ' gets burned for ' + str(FIREBALL_DAMAGE) + ' hit points.', libtcod.orange)
             obj.fighter.take_damage(FIREBALL_DAMAGE,player.fighter)
  
+def cast_grenade():
+    global player
+    #ask the player for a target tile to throw a fireball at
+    message(TARGET_MESSAGE % 'the Holy Hand Grenade', libtcod.light_cyan)
+    (x, y) = target_tile()
+    if x is None: return 'cancelled'
+    message('The Holy Hand Grenade demolishes everything!', libtcod.orange)
+ 
+    for obj in objects:  #damage every fighter in range, excluding the player
+        if obj != player:
+            if obj.distance(x, y) <= FIREBALL_RADIUS and obj.fighter:
+                message('The ' + obj.name + ' vaporizes for ' + str(GRENADE_DAMAGE) + ' hit points.', libtcod.orange)
+                obj.fighter.take_damage(GRENADE_DAMAGE, player.fighter)
+
 def cast_confuse():
     #ask the player for a target to confuse
     message(TARGET_MESSAGE % 'confusion', libtcod.light_cyan)
@@ -1342,11 +1378,12 @@ def new_game():
     global player, inventory, game_msgs, game_state, dungeon_level, key, race
 
     global player, inventory, game_msgs, game_state, dungeon_level
-    global killerrabbit_created, killerrabbit_death 
+    global killerrabbit_created, killerrabbit_death , wearing_amulet
     
     #Reset important events
     killerrabbit_created = False
     killerrabbit_death = False
+    wearing_amulet = False
  
     #create object representing the player
     if race == 'Dwarf':
@@ -1362,6 +1399,7 @@ def new_game():
  
     #generate map (at this point it's not drawn to the screen)
     dungeon_level = 1
+    
     make_map()
     initialize_fov()
  

@@ -37,7 +37,6 @@ import math
 import textwrap
 import shelve
  
- 
 #actual size of the window
 SCREEN_WIDTH = 85 
 SCREEN_HEIGHT = 50
@@ -75,7 +74,6 @@ GRENADE_DAMAGE = 9000
 #experience and level-ups
 LEVEL_UP_BASE = 200
 LEVEL_UP_FACTOR = 150
- 
  
 FOV_ALGO = 0  #default FOV algorithm
 FOV_LIGHT_WALLS = True  #light walls or not
@@ -130,7 +128,7 @@ class Rect:
         return (self.x1 <= other.x2 and self.x2 >= other.x1 and
                 self.y1 <= other.y2 and self.y2 >= other.y1)
  
-class Object:
+class Object(object):
     #this is a generic object: the player, a monster, an item, the stairs...
     #it's always represented by a character on screen.
     def __init__(self, x, y, char, name, color, blocks=False, always_visible=False, fighter=None, ai=None, item=None, equipment=None):
@@ -413,7 +411,7 @@ class Equipment:
         message('Dequipped ' + self.owner.name + ' from ' + self.slot + '.', libtcod.light_yellow)
         if self.owner.name == 'Amulet of the Flying Circus':
             wearing_amulet = False
- 
+
 def get_equipped_in_slot(slot):  #returns the equipment in a slot, or None if it's empty
     for obj in inventory:
         if obj.equipment and obj.equipment.slot == slot and obj.equipment.is_equipped:
@@ -429,7 +427,7 @@ def get_all_equipped(obj):  #returns a list of equipped items
         return equipped_list
     else:
         return []  #other objects have no equipment
- 
+     
 def is_blocked(x, y):
     #first test the map tile
     if map[x][y].blocked:
@@ -465,8 +463,17 @@ def create_v_tunnel(y1, y2, x):
         map[x][y].block_sight = False
  
 def make_map():
-    global map, objects, stairs
+    #BEGIN
+    #Frost: temporary hack
+    #this piece needs to be removed as soon as their are stairs going 
+    #back up. Since monster uniqueness is now across levels it can happen
+    #that the player misses the killer rabbit in a higher level.
+    global monster_population
+    if 'killerrabbit' in monster_population.uniques:
+        monster_population.uniques.remove('killerrabbit')
+    #END
  
+    global map, objects, stairs 
     #the list of objects with just the player
     objects = [player]
  
@@ -537,7 +544,156 @@ def make_map():
     stairs = Object(new_x, new_y, '<', 'stairs', libtcod.white, always_visible=True)
     objects.append(stairs)
     stairs.send_to_back()  #so it's drawn below the monsters
+
+# Comment Frostlock: I was planning to move these Monster* classes to a 
+# monsters.py file. But this proved difficult since it needs global functions 
+# from the main dungeons.py
+# I'm still hoping to do this later once we have a bit less global functions.
+class Monster(Object):
+    """
+    Monster class representing monsters in game. Inherits from basic game 
+    object class.
+    """
+    _FLAVOR_TEXT = "Flavor text not set"
+    @property
+    def FlavorText(self):
+        return self._FLAVOR_TEXT
  
+    _KILLED_BY_TEXT = "Killed by text not set"
+    @property
+    def KilledByText(self):
+        return self._KILLED_BY_TEXT
+ 
+    def __init__(self, x, y, char, name, color, flavor, killed_by, fighter_comp=None, ai_comp=None):
+        #Monsters are always blocking
+        blocking=True
+        #call constructor of super class
+        super(Monster, self).__init__(x, y, char, name, color, blocks=blocking, fighter=fighter_comp, ai=ai_comp)
+        #set monster specific class variables
+        self._FLAVOR_TEXT = flavor
+        self._KILLED_BY_TEXT = killed_by
+        
+class MonsterLibrary():
+    """
+    This class represents a library of monsters, basically it provides an
+    interface towards the monsters config file.
+    It is not aware of the game itself.
+    Arguments
+        config - an initialised config parser
+    """
+    
+    #configparser that contains game configuration
+    _CONFIG = None
+    
+    def __init__(self,config):
+        self._CONFIG = config
+    
+    def createMonster(self,x,y,monster_key):
+        """
+        Function to build a new Monster.
+        Arguments
+            monster_key - string that identifies a monster in the config file.
+        """
+        # load the monster data from the config
+        monster_data = dict(self._CONFIG.items(monster_key))
+        
+        # build the monster components
+        fighter_component = Fighter(
+            hp=roll_hit_die(monster_data['hitdie']),
+            defense=int(monster_data['defense']),
+            power=int(monster_data['power']),
+            xp=int(monster_data['xp']),
+            death_function=globals().get(monster_data['death_function'], None))
+            #death_function=monster_data['death_function'])
+            
+        # this gets a class object by name
+        ai_class = globals().get(monster_data['ai_component'])
+        #ai_component=monster_data['ai_component']
+        
+        # and this instanstiates it if not None
+        ai_component = ai_class and ai_class() or None
+        
+        # finally we assemble the monster object
+        monster = Monster(x, y, monster_data['char'], monster_key,
+            libtcod.Color(*tuple(json.loads(monster_data['color']))),
+            monster_data['flavor'], monster_data['killed_by'],
+            fighter_comp=fighter_component, ai_comp=ai_component)
+        return monster
+        
+        
+class MonsterPopulation():
+    """
+    This class represents and manages all the monsters in the game.
+    It is linked to a specific game.
+    Arguments
+        config - an initialised config parser (received from game)
+    """
+    #configparser that contains game configuration
+    _CONFIG = None
+        
+    #reference to a monster library on which this population is based
+    _LIBRARY = None
+    @property
+    def library(self):
+        return self._LIBRARY
+    
+    #Keep track of unique monsters
+    _UNIQUES = None
+    @property
+    def uniques(self):
+        return self._UNIQUES
+    
+    def __init__(self,config):
+        self._CONFIG = config
+        self._LIBRARY = MonsterLibrary(config)
+        self._UNIQUES = []
+    
+    #Frost: This is double code at the moment but it is meant to be taken along
+    #to a different file.
+    def from_dungeon_level(self,table,dungeon_level):
+        #returns a value that depends on level. the table specifies what value occurs after each level, default is 0.
+        for (value, level) in reversed(table):
+            if dungeon_level >= level:
+                return value
+        return 0    
+    
+    def place_monsters(self,room,dungeon_level):
+        #maximum number of monsters per room
+        max_monsters = self.from_dungeon_level([[5, 6], [3, 4], [2, 1]],dungeon_level)
+
+        #chance of each monster
+        monster_chances = {}
+        for monster_name in self._CONFIG.get('lists', 'monster list').split(', '):
+            chance_table = json.loads(self._CONFIG.get(monster_name, 'chance'))
+            monster_chances[monster_name] = self.from_dungeon_level(chance_table,dungeon_level)
+
+        #choose random number of monsters
+        num_monsters = libtcod.random_get_int(0, 0, max_monsters)
+        
+        for i in range(num_monsters):
+            #choose random spot for this monster
+            x = libtcod.random_get_int(0, room.x1+1, room.x2-1)
+            y = libtcod.random_get_int(0, room.y1+1, room.y2-1)
+     
+            #only place it if the tile is not blocked
+            if not is_blocked(x, y):
+                # choose a random monster
+                choice = random_choice(monster_chances)
+                
+                # load the monster data from the config
+                monster_data = dict(self._CONFIG.items(choice))
+                
+                # do not create multiple unique monsters
+                if monster_data['unique'] == 'True':
+                    if choice in self.uniques:
+                        #This unique was already created, do nothing
+                        continue
+                    else:
+                        self.uniques.append(choice)
+                monster = self.library.createMonster(x,y,choice)
+
+                objects.append(monster)
+
 def random_choice_index(chances):  #choose one option from list of chances, returning its index
     #the dice will land on some number between 1 and the sum of the chances
     dice = libtcod.random_get_int(0, 1, sum(chances))
@@ -561,26 +717,47 @@ def random_choice(chances_dict):
     return strings[random_choice_index(chances)]
  
 def from_dungeon_level(table):
+    global dungeon_level
     #returns a value that depends on level. the table specifies what value occurs after each level, default is 0.
     for (value, level) in reversed(table):
         if dungeon_level >= level:
             return value
     return 0
- 
-def place_objects(room):
-    #this is where we decide the chance of each monster or item appearing.
- 
-    #maximum number of monsters per room
-    max_monsters = from_dungeon_level([[2, 1], [3, 4], [5, 6]])
- 
-    #chance of each monster
-    monster_chances = {}
-    for monster_name in config.get('lists', 'monster list').split(', '):
-        chance_table = json.loads(config.get(monster_name, 'chance'))
-        monster_chances[monster_name] = from_dungeon_level(chance_table)
 
-    global killerrabbit_created #this variable is used to make sure we only have one killerrabbit
+def roll_hit_die(hitdie):
+    """
+    this function simulates rolling hit dies and returns the resulting 
+    nbr of hitpoints. Hit dies are specified in the format xdy where
+    x indicates the number of times that a die (d) with y sides is 
+    thrown. For example 2d6 means rolling 2 six sided dices.
+    Arguments
+        hitdie - a string in hitdie format
+    Returns
+        integer number of hitpoints
+    """
+    #interpret the hitdie string
+    d_index = hitdie.lower().index('d')
+    nbr_of_rolls = int(hitdie[0:d_index])
+    dice_size = int(hitdie[d_index + 1:])
+    #roll the dice
+    role_count = 0
+    hitpoints = 0
+    while role_count <= nbr_of_rolls:
+        role_count += 1
+        hitpoints += libtcod.random_get_int(0, 1, dice_size)
+    return hitpoints
+
+def place_objects(room):
+    """
+    This function will place items and monsters in a room.
+    """
+    # Frostlock: I moved code related to monster creation out to specialised
+    # classes, the logic hasn't changed much yet but this provides a place
+    # for more complex monster creation logic later.
     
+    # Leverage MonsterPopulation to place the monsters
+    monster_population.place_monsters(room, dungeon_level)
+
     #maximum number of items per room
     max_items = from_dungeon_level([[1, 1], [2, 4]])
  
@@ -588,54 +765,8 @@ def place_objects(room):
     item_chances = {}
     for item_name in config.get('lists', 'item list').split(', '):
         chance_table = json.loads(config.get(item_name, 'chance'))
-        item_chances[item_name] = from_dungeon_level(chance_table)
-
-    # remember unique monsters
-    uniques = [obj.name for obj in objects]
-
-    #choose random number of monsters
-    num_monsters = libtcod.random_get_int(0, 0, max_monsters)
- 
-    for i in range(num_monsters):
-        #choose random spot for this monster
-        x = libtcod.random_get_int(0, room.x1+1, room.x2-1)
-        y = libtcod.random_get_int(0, room.y1+1, room.y2-1)
- 
-        #only place it if the tile is not blocked
-        if not is_blocked(x, y):
-            # choose a random monster
-            choice = random_choice(monster_chances)
-            
-            # load the monster data from the config
-            monster = dict(config.items(choice))
-            
-            # do not create multiple unique monsters
-            if monster['unique'] == 'True':
-                if choice in uniques:
-                    continue
-                else:
-                    uniques.append(choice)
-            
-            # build the monster components
-            fighter_component = Fighter(
-                hp=int(monster['hp']),
-                defense=int(monster['defense']),
-                power=int(monster['power']),
-                xp=int(monster['xp']),
-                death_function=globals().get(monster['death_function'], None))
-                
-            # this gets a class object by name
-            ai_class = globals().get(monster['ai_component'])
-            
-            # and this instanstiates it if not None
-            ai_component = ai_class and ai_class() or None
-            
-            # finally we assemble the monster object
-            monster = Object(x, y, monster['char'], choice,
-                libtcod.Color(*tuple(json.loads(monster['color']))),
-                blocks=True, fighter=fighter_component, ai=ai_component)
-            objects.append(monster)
-
+        item_chances[item_name] = from_dungeon_level(chance_table) 
+    
     #choose random number of items
     num_items = libtcod.random_get_int(0, 0, max_items)
  
@@ -1102,12 +1233,11 @@ def check_level_up():
             player.fighter.base_defense += 1
  
 def player_death(player,attacker):
-    message('Player is killed by ' + attacker.owner.name.capitalize() + '.')
+    message(attacker.owner.KilledByText)
+    #message('Player is killed by ' + attacker.owner.name.capitalize() + '.')
     global killerrabbit_death
     if attacker.owner.name == 'killerrabbit':
         killerrabbit_death = True
-        message('Death Awaits You All With Nasty Big Pointy Teeth!', libtcod.red)
-        message('Beware the Killerrabbit!', libtcod.red)
 
     #End the game
     global game_state
@@ -1351,14 +1481,15 @@ def save_game():
     file['game_state'] = game_state
     file['dungeon_level'] = dungeon_level
     file['race'] = race
-    file['events'] = [killerrabbit_created, killerrabbit_death]
+    file['events'] = [killerrabbit_death, wearing_amulet]
+    file['monsterpopulation'] = monster_population
     file.close()
  
 def load_game():
     #open the previously saved shelve and load the game data
-    global map, objects, player, stairs, inventory, game_msgs, game_state, dungeon_level, race
-    global killerrabbit_created, killerrabbit_death 
-       
+    global map, objects, player, stairs, inventory, game_msgs, game_state, dungeon_level, race, monster_population
+    global killerrabbit_death, wearing_amulet
+    
     file = shelve.open('savegame', 'r')
     map = file['map']
     objects = file['objects']
@@ -1369,21 +1500,24 @@ def load_game():
     game_state = file['game_state']
     dungeon_level = file['dungeon_level']
     race = file['race']
-    killerrabbit_created, killerrabbit_death = file['events']
+    killerrabbit_death, wearing_amulet = file['events']
+    monster_population = file['monsterpopulation']
     file.close()
  
     initialize_fov()
  
 def new_game():
-    global player, inventory, game_msgs, game_state, dungeon_level, key, race
-
     global player, inventory, game_msgs, game_state, dungeon_level
-    global killerrabbit_created, killerrabbit_death , wearing_amulet
+    global killerrabbit_death , wearing_amulet, monster_population
     
-    #Reset important events
-    killerrabbit_created = False
+    #Frost# Need to get rid of this later
+    global killerrabbit_death
     killerrabbit_death = False
     wearing_amulet = False
+    
+    #Create new MonsterPopulation that will be used in this game
+    monster_population = MonsterPopulation(config)
+
  
     #create object representing the player
     if race == 'Dwarf':

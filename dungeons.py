@@ -996,7 +996,7 @@ def handle_keys():
             #test for other keys
             key_char = chr(key.c)
  
-            if key_char == ',':
+            if key_char == ',' or key_char == 'g':
                 #pick up an item
                 for object in objects:  #look for an item in the player's tile
                     if object.x == player.x and object.y == player.y and object.item:
@@ -1030,7 +1030,7 @@ def handle_keys():
                 msgbox('The ARROW keys move you around\n' +
                        'Press "g" to GET items\n' + 'Press "<" to go down stairs\n' + 'Press "c" for Character information\n' +
                        'Press "i" for your INVENTORY\nPress "d" to DROP an item\nPress "s" for the STORY\nPress "esc" to exit\n' + 
-                       'Press "Alt+Enter" for fullscreen\nPress "h" to see this screen at any time' +
+                       'Press "Alt+Enter" for fullscreen\nPress "?" to see this screen at any time' +
                        '\n\nTarget enemies with the mouse or keypad.' +
                        '\nConfirm target with left-click or <Enter>.' +
                        '\nCancel target with right-click or <Esc>.')
@@ -1350,7 +1350,7 @@ def new_game():
     game_msgs = []
  
     #a warm welcoming message!
-    message('The UNDERDEEP greets you with a cold breeze that smells of evil. (Press "H" for HELP)', libtcod.red)
+    message('The UNDERDEEP greets you with a cold breeze that smells of evil. (Press "?" for HELP)', libtcod.red)
 
     #initial equipment: a dagger
     equipment_component = Equipment(slot='right hand', power_bonus=2)

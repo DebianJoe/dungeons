@@ -959,6 +959,7 @@ def handle_keys():
         return 'exit'  #exit game
  
     if game_state == 'playing':
+        key_char = chr(key.c)
         #movement keys
         if key.vk == libtcod.KEY_UP or key.vk == libtcod.KEY_KP8:
             player_move_or_attack(0, -1)
@@ -976,6 +977,19 @@ def handle_keys():
             player_move_or_attack(-1, 1)
         elif key.vk == libtcod.KEY_PAGEDOWN or key.vk == libtcod.KEY_KP3:
             player_move_or_attack(1, 1)
+
+            #vim movement keys
+        elif key_char == 'h':
+            player_move_or_attack(-1, 0)
+        elif key_char == 'j':
+            player_move_or_attack(0, 1)
+        elif key_char == 'k':
+            player_move_or_attack(0, -1)
+        elif key_char == 'l':
+            player_move_or_attack(1, 0)
+            # the period key (".") makes the player wait one turn.
+        elif key_char == '.':
+            player_move_or_attack(0, 0)
         elif key.vk == libtcod.KEY_KP5:
             pass  #do nothing ie wait for the monster to come to you
         else:
@@ -1030,20 +1044,6 @@ def handle_keys():
                 #go down stairs, if the player is on them
                 if stairs.x == player.x and stairs.y == player.y:
                     next_level()
-
-            #vim movement keys
-            if key_char == 'h':
-                player_move_or_attack(-1, 0)
-            elif key_char == 'j':
-                player_move_or_attack(0, 1)
-            elif key_char == 'k':
-                player_move_or_attack(0, -1)
-            elif key_char == 'l':
-                player_move_or_attack(1, 0)
-            # the period key (".") makes the player wait one turn.
-            elif key_char == '.':
-                player_move_or_attack(0, 0)
-
  
             return 'didnt-take-turn'
 

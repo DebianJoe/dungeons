@@ -1400,12 +1400,6 @@ def new_game():
     #generate map (at this point it's not drawn to the screen)
     dungeon_level = 1
     
-    #TODO remove for testing
-    dungeon_level = 8
-    player.fighter.base_max_hp = 1000
-    player.fighter.hp = 5000
-#    player.fighter.base_power = 100
-    
     make_map()
     initialize_fov()
  

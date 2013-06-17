@@ -664,11 +664,11 @@ class MonsterPopulation():
                 
                 # do not create multiple unique monsters
                 if monster_data['unique'] == 'True':
-                    if choice in self.uniques():
+                    if choice in self.uniques:
                         #This unique was already created, do nothing
                         continue
                     else:
-                        self.uniques().append(choice)
+                        self.uniques.append(choice)
                 monster = self.library.createMonster(x,y,choice)
 
                 objects.append(monster)
